@@ -1,75 +1,28 @@
 package news_handler
 
 import (
-	"database/sql"
-	"fmt"
-	"log"
-	"os"
-	"strings"
 
 	// "github.com/ara-thesis/monarch-project-be/src/helper"
 
+	pgHelper "github.com/ara-thesis/monarch-project-be/src/helper"
 	"github.com/gofiber/fiber/v2"
 	_ "github.com/lib/pq"
 )
 
-var (
-	db  *sql.DB
-	err error
-)
-
-func Init() {
-
-	host := os.Getenv("PG_HOST")
-	port := os.Getenv("PG_PORT")
-	user := os.Getenv("PG_USER")
-	password := os.Getenv("PG_PASS")
-	dbname := os.Getenv("PG_DB")
-
-	pgconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
-
-	db, err = sql.Open("postgres", pgconn)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Print("DB CONNECTED")
-
+type data struct {
+	id    string
+	title string
 }
 
 func GetNews(c *fiber.Ctx) error {
 
-	rows, err1 := db.Query("SELECT * FROM newstb")
+	var value data
 
-	if err1 != nil {
-		log.Fatal(err)
-	}
+	pgHelper.Qy("SELECT id, title FROM newstb", &value.id, &value.title)
 
-	res, err2 := rows.Columns()
+	// result, _ := json.Marshal(resultsql)
 
-	if err2 != nil {
-		log.Fatal(err)
-	}
-
-	// result := map[string]string{}
-
-	// for rows.Next() {
-	// 	var (
-	// 		id int64
-	// 		name string
-	// 	)
-
-	// 	err := rows.Scan()
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// 	log.
-	// }
-
-	rows.Close()
-
-	// return c.JSON(rows)
-	return c.SendString(strings.Join(res, " "))
+	return c.SendString("" + value.id + ":" + value.title)
 }
 
 func GetNewsById(c *fiber.Ctx) error {
@@ -77,6 +30,9 @@ func GetNewsById(c *fiber.Ctx) error {
 }
 
 func AddNews(c *fiber.Ctx) error {
+
+	pgHelper.Cmd("")
+
 	return c.SendString("Test")
 }
 

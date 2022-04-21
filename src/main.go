@@ -9,10 +9,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func startup() {
-	news_handler.Init()
-}
-
 func pathapi(app *fiber.App) {
 	app.Get("/api/news/v1", news_handler.GetNews)
 	app.Get("/api/news/v1/:id", news_handler.GetNewsById)
@@ -27,7 +23,6 @@ func main() {
 		log.Fatalf("failed to load env file: %s", env_err)
 	}
 	app := fiber.New()
-	startup()
 	pathapi(app)
 	log.Fatal(app.Listen(":" + os.Getenv("PORT")))
 }
