@@ -1,62 +1,94 @@
-package helper
+package pg_helper
 
 import (
-	"database/sql"
 	"fmt"
-	"os"
 
+	_ "github.com/ara-thesis/monarch-project-be/src/helper/environment"
+
+	"github.com/jackc/pgx"
 	_ "github.com/lib/pq"
 )
 
 var (
-	host     = os.Getenv("PG_HOST")
-	port     = os.Getenv("PG_PORT")
-	user     = os.Getenv("PG_USER")
-	password = os.Getenv("PG_PASS")
-	dbname   = os.Getenv("PG_DB")
+	host     = "localhost"
+	port     = "5432"
+	user     = "postgres"
+	password = "Raflis2001"
+	dbname   = "monarch-thesis"
 )
 
-func Qy(query string, select_column ...interface{}) error {
+// sql query helper
+func Query(query string) ([]interface{}, error) {
 
-	fmt.Print(host + " " + port + " " + user + " " + dbname)
-	pgqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
-	db, dbErr := sql.Open("postgres", pgqlconn)
+	connConfig := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	pgqlconn, errConn := pgx.ParseDSN(connConfig)
+	if errConn != nil {
+		return nil, errConn
+	}
+	db, dbErr := pgx.Connect(pgqlconn)
 	if dbErr != nil {
-		return dbErr
+		return nil, dbErr
 	}
-	defer db.Close()
-	var (
-		rows  *sql.Rows
-		qyErr error
-	)
-	rows, qyErr = db.Query(query)
+	rows, qyErr := db.Query(query)
 	if qyErr != nil {
-		return qyErr
+		db.Close()
+		return nil, qyErr
 	}
+	// valArray := make(map[int]map[string]interface{})
+	valArray := make([]interface{}, 1)
+	colName := rows.FieldDescriptions()
+	valArrCount := 0
 	for rows.Next() {
-		if scanErr := rows.Scan(select_column...); scanErr != nil {
-			return scanErr
+		valResult, valErr := rows.Values()
+		tempArr := make(map[string]interface{})
+		if valErr != nil {
+			db.Close()
+			return nil, valErr
 		}
+		for id, val := range valResult {
+			tempArr[colName[id].Name] = val
+		}
+		if valArrCount == 0 {
+			valArray[0] = tempArr
+		} else {
+			valArray = append(valArray, tempArr)
+		}
+		valArrCount++
 	}
-	return nil
+	db.Close()
+	return valArray, nil
 
 }
 
-func Cmd(query string, args ...interface{}) error {
+// sql command helper
+func Command(query string) error {
 
-	pgqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
-	db, dbErr := sql.Open("postgres", pgqlconn)
+	connConfig := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	pgqlconn, errConn := pgx.ParseDSN(connConfig)
+	if errConn != nil {
+		return errConn
+	}
+	db, dbErr := pgx.Connect(pgqlconn)
 	if dbErr != nil {
 		return dbErr
 	}
-	db.Exec("BEGIN")
-	_, cmdErr := db.Exec(query, args[len(args)-1])
+	tx, txErr := db.Begin()
+	if txErr != nil {
+		db.Close()
+		return txErr
+	}
+	_, cmdErr := tx.Exec(query)
 	if cmdErr != nil {
-		db.Exec("ROLLBACK")
+		tx.Rollback()
 		db.Close()
 		return cmdErr
 	}
-	db.Exec("COMMIT")
+	commErr := tx.Commit()
+	if commErr != nil {
+		tx.Rollback()
+		db.Close()
+		return commErr
+	}
 	db.Close()
 	return nil
 
