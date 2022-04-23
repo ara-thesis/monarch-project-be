@@ -1,4 +1,4 @@
-package env_helper
+package helper
 
 import (
 	"log"

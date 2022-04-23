@@ -4,18 +4,29 @@ import (
 	"log"
 	"os"
 
-	env_helper "github.com/ara-thesis/monarch-project-be/src/helper/environment"
+	env_helper "github.com/ara-thesis/monarch-project-be/src/helper"
 
-	news_handler "github.com/ara-thesis/monarch-project-be/src/module/news"
+	"github.com/ara-thesis/monarch-project-be/src/module"
 	"github.com/gofiber/fiber/v2"
 )
 
 func pathapi(app *fiber.App) {
-	app.Get("/api/news", news_handler.GetNews)
-	app.Get("/api/news/:id", news_handler.GetNewsById)
-	app.Post("/api/news", news_handler.AddNews)
-	app.Put("/api/news/:id", news_handler.EditNews)
-	app.Delete("/api/news/:id", news_handler.DeleteNews)
+	AccountHandler := new(module.AccountHandler)
+	NewsHandler := new(module.NewsHandler)
+
+	app.Get("/api/auth", AccountHandler.GetUserInfo)
+	app.Post("/api/auth/regist", AccountHandler.CreateUser)
+	app.Post("/api/auth/login", AccountHandler.UserLogin)
+	app.Put("/api/auth", AccountHandler.EditUser)
+	app.Put("/api/auth/:id", AccountHandler.EditUserAsAdmin)
+	app.Delete("/api/auth/:id", AccountHandler.DeleteUser)
+
+	app.Get("/api/news", NewsHandler.GetNews)
+	app.Get("/api/news/:id", NewsHandler.GetNewsById)
+	app.Post("/api/news", NewsHandler.AddNews)
+	app.Put("/api/news/:id", NewsHandler.EditNews)
+	app.Delete("/api/news/:id", NewsHandler.DeleteNews)
+
 }
 
 func main() {

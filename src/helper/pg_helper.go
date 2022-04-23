@@ -1,9 +1,7 @@
-package pg_helper
+package helper
 
 import (
 	"fmt"
-
-	_ "github.com/ara-thesis/monarch-project-be/src/helper/environment"
 
 	"github.com/jackc/pgx"
 	_ "github.com/lib/pq"
