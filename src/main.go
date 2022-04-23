@@ -6,13 +6,13 @@ import (
 
 	env_helper "github.com/ara-thesis/monarch-project-be/src/helper"
 
-	"github.com/ara-thesis/monarch-project-be/src/module"
+	"github.com/ara-thesis/monarch-project-be/src/controller"
 	"github.com/gofiber/fiber/v2"
 )
 
 func pathapi(app *fiber.App) {
-	AccountHandler := new(module.AccountHandler)
-	NewsHandler := new(module.NewsHandler)
+	AccountHandler := new(controller.AccountHandler)
+	NewsHandler := new(controller.NewsHandler)
 
 	app.Get("/api/auth", AccountHandler.GetUserInfo)
 	app.Post("/api/auth/regist", AccountHandler.CreateUser)

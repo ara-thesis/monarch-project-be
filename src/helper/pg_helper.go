@@ -15,8 +15,10 @@ var (
 	dbname   = "monarch-thesis"
 )
 
+type PgHelper struct{}
+
 // sql query helper
-func Query(query string) ([]interface{}, error) {
+func (pg *PgHelper) Query(query string) ([]interface{}, error) {
 
 	connConfig := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 	pgqlconn, errConn := pgx.ParseDSN(connConfig)
@@ -59,7 +61,7 @@ func Query(query string) ([]interface{}, error) {
 }
 
 // sql command helper
-func Command(query string) error {
+func (pg *PgHelper) Command(query string) error {
 
 	connConfig := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 	pgqlconn, errConn := pgx.ParseDSN(connConfig)

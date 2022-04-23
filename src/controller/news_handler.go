@@ -1,38 +1,28 @@
-package module
+package controller
 
 import (
-	pg "github.com/ara-thesis/monarch-project-be/src/helper"
+	"github.com/ara-thesis/monarch-project-be/src/helper"
 	"github.com/gofiber/fiber/v2"
 	_ "github.com/lib/pq"
 )
 
-type NewsHandler struct {
-}
+type NewsHandler struct{}
 
 func (n *NewsHandler) GetNews(c *fiber.Ctx) error {
 
-	respMsg := make(map[string]interface{})
+	pg := new(helper.PgHelper)
+	respHelper := new(helper.ResponseHelper)
 
 	resArr, resErr := pg.Query("SELECT * FROM newstb WHERE id='2'")
 
 	if resErr != nil {
 
-		respCode := 500
-
-		respMsg["success"] = false
-		respMsg["data"] = resErr.Error()
-		respMsg["message"] = "SQL ERROR"
-		respMsg["code"] = respCode
+		respMsg, respCode := respHelper.CreateResponse(resArr, resErr)
 
 		return c.Status(respCode).JSON(respMsg)
 	}
 
-	respCode := 200
-
-	respMsg["success"] = true
-	respMsg["data"] = resArr
-	respMsg["message"] = "Fetching News Data"
-	respMsg["code"] = respCode
+	respMsg, respCode := respHelper.CreateResponse(resArr, resErr)
 
 	return c.Status(respCode).JSON(respMsg)
 }
