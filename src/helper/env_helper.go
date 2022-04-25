@@ -12,7 +12,7 @@ var (
 )
 
 func SetEnv() {
-	env_err := godotenv.Load("../.env")
+	env_err := godotenv.Load(".env")
 	if env_err != nil {
 		log.Fatalf("failed to load env file: %s", env_err)
 	}

@@ -18,7 +18,7 @@ var (
 type PgHelper struct{}
 
 // sql query helper
-func (pg *PgHelper) Query(query string) ([]interface{}, error) {
+func (pg *PgHelper) Query(query string, args ...interface{}) ([]interface{}, error) {
 
 	connConfig := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 	pgqlconn, errConn := pgx.ParseDSN(connConfig)
@@ -29,7 +29,7 @@ func (pg *PgHelper) Query(query string) ([]interface{}, error) {
 	if dbErr != nil {
 		return nil, dbErr
 	}
-	rows, qyErr := db.Query(query)
+	rows, qyErr := db.Query(query, args...)
 	if qyErr != nil {
 		db.Close()
 		return nil, qyErr
@@ -61,7 +61,7 @@ func (pg *PgHelper) Query(query string) ([]interface{}, error) {
 }
 
 // sql command helper
-func (pg *PgHelper) Command(query string) error {
+func (pg *PgHelper) Command(query string, args ...interface{}) error {
 
 	connConfig := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 	pgqlconn, errConn := pgx.ParseDSN(connConfig)
@@ -77,7 +77,7 @@ func (pg *PgHelper) Command(query string) error {
 		db.Close()
 		return txErr
 	}
-	_, cmdErr := tx.Exec(query)
+	_, cmdErr := tx.Exec(query, args...)
 	if cmdErr != nil {
 		tx.Rollback()
 		db.Close()

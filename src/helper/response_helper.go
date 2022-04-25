@@ -1,26 +1,28 @@
 package helper
 
+import "github.com/gofiber/fiber/v2"
+
 type ResponseHelper struct {
 }
 
-func (r *ResponseHelper) CreateResponse(result []interface{}, resErr error) (map[string]interface{}, int) {
+func (r *ResponseHelper) Success(c *fiber.Ctx, result []interface{}, msg string, code int) error {
 
-	respMsg := make(map[string]interface{})
+	return c.Status(code).JSON(fiber.Map{
+		"success": true,
+		"data":    result,
+		"message": msg,
+		"code":    code,
+	})
 
-	if resErr != nil {
+}
 
-		respMsg["success"] = false
-		respMsg["data"] = resErr.Error()
-		respMsg["message"] = "SQL ERROR"
-		respMsg["code"] = 500
+func (r *ResponseHelper) Failed(c *fiber.Ctx, msg string, code int) error {
 
-		return respMsg, 500
-	}
+	return c.Status(code).JSON(fiber.Map{
+		"success": false,
+		"data":    nil,
+		"message": msg,
+		"code":    code,
+	})
 
-	respMsg["success"] = true
-	respMsg["data"] = result
-	respMsg["message"] = "Fetching News Data"
-	respMsg["code"] = 200
-
-	return respMsg, 200
 }
