@@ -15,7 +15,8 @@ func pathapi(app *fiber.App) {
 	NewsHandler := new(controller.NewsHandler)
 
 	app.Get("/api/auth", AccountHandler.GetUserInfo)
-	app.Post("/api/auth/regist", AccountHandler.CreateUser)
+	app.Post("/api/auth/regist/placemanager", AccountHandler.CreateUserPlaceManager)
+	app.Post("/api/auth/regist/tourist", AccountHandler.CreateUserTourist)
 	app.Post("/api/auth/login", AccountHandler.UserLogin)
 	app.Put("/api/auth", AccountHandler.EditUser)
 	app.Put("/api/auth/:id", AccountHandler.EditUserAsAdmin)
