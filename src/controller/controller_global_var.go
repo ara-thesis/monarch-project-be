@@ -9,6 +9,7 @@ var (
 		"account_roleuser": "roleuser",
 		"account_roleinfo": "roleinfo",
 	}
-	db   = new(helper.PgHelper)
-	resp = new(helper.ResponseHelper)
+	db        = new(helper.PgHelper)
+	resp      = new(helper.ResponseHelper)
+	jwthelper = new(helper.JwtHelper)
 )

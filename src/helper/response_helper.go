@@ -74,6 +74,17 @@ func (r *ResponseHelper) Unauthorized(c *fiber.Ctx, msg string) error {
 		"success": false,
 		"data":    nil,
 		"message": msg,
+		"code":    401,
+	})
+
+}
+
+func (r *ResponseHelper) Forbidden(c *fiber.Ctx, msg string) error {
+
+	return c.Status(403).JSON(fiber.Map{
+		"success": false,
+		"data":    nil,
+		"message": msg,
 		"code":    403,
 	})
 

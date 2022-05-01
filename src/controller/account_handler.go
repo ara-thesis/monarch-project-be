@@ -65,6 +65,8 @@ func (u *AccountHandler) CreateUserTourist(c *fiber.Ctx) error {
 
 func (u *AccountHandler) UserLogin(c *fiber.Ctx) error {
 
+	respMap := make([]interface{}, 0)
+
 	model := new(model.AccountModel)
 	model.Username = c.FormValue("username")
 	model.Password = c.FormValue("password")
@@ -80,7 +82,20 @@ func (u *AccountHandler) UserLogin(c *fiber.Ctx) error {
 		return resp.NotFound(c, "Wrong username or password")
 	}
 
-	return resp.Success(c, nil, "LOGIN SUCCESS")
+	token, err := jwthelper.GenerateToken(map[string]interface{}{
+		"userId":   resQy[0].(map[string]interface{})["id"],
+		"username": resQy[0].(map[string]interface{})["username"],
+		"userRole": resQy[0].(map[string]interface{})["userrole"],
+	})
+	if err != nil {
+		return resp.ServerError(c, "Problem generating token")
+	}
+
+	respMap = append(respMap, map[string]string{
+		"token": token,
+	})
+
+	return resp.Success(c, respMap, "LOGIN SUCCESS")
 }
 
 func (u *AccountHandler) EditUser(c *fiber.Ctx) error {

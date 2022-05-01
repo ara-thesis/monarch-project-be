@@ -1,5 +1,7 @@
 /.vscode
 /bin
+/build
+
 .env
 
 # Binaries for programs and plugins

@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/ara-thesis/monarch-project-be/src/helper"
 	env_helper "github.com/ara-thesis/monarch-project-be/src/helper"
 
 	"github.com/ara-thesis/monarch-project-be/src/controller"
@@ -13,6 +14,7 @@ import (
 func pathapi(app *fiber.App) {
 	AccountHandler := new(controller.AccountHandler)
 	NewsHandler := new(controller.NewsHandler)
+	JwtHelper := new(helper.JwtHelper)
 
 	app.Get("/api/auth", AccountHandler.GetUserInfo)
 	app.Post("/api/auth/regist/placemanager", AccountHandler.CreateUserPlaceManager)
@@ -22,11 +24,11 @@ func pathapi(app *fiber.App) {
 	app.Put("/api/auth/:id", AccountHandler.EditUserAsAdmin)
 	app.Delete("/api/auth/:id", AccountHandler.DeleteUser)
 
-	app.Get("/api/news", NewsHandler.GetNews)
-	app.Get("/api/news/:id", NewsHandler.GetNewsById)
-	app.Post("/api/news", NewsHandler.AddNews)
-	app.Put("/api/news/:id", NewsHandler.EditNews)
-	app.Delete("/api/news/:id", NewsHandler.DeleteNews)
+	app.Get("/api/news", JwtHelper.VerifyToken, NewsHandler.GetNews)
+	app.Get("/api/news/:id", JwtHelper.VerifyToken, NewsHandler.GetNewsById)
+	app.Post("/api/news", JwtHelper.VerifyToken, NewsHandler.AddNews)
+	app.Put("/api/news/:id", JwtHelper.VerifyToken, NewsHandler.EditNews)
+	app.Delete("/api/news/:id", JwtHelper.VerifyToken, NewsHandler.DeleteNews)
 
 }
 
