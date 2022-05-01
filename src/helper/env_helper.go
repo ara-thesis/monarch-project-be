@@ -14,7 +14,8 @@ var (
 func SetEnv() {
 	env_err := godotenv.Load(".env")
 	if env_err != nil {
-		log.Fatalf("failed to load env file: %s", env_err)
+		log.Printf("failed to load env file: %s", env_err)
+		return
 	}
 	env = make(map[string]string)
 	env["PORT"] = os.Getenv("PORT")

@@ -10,6 +10,14 @@ import (
 
 type JwtHelper struct{}
 
+type ClaimsData struct {
+	UserId    string    `json:"userId"`
+	Username  string    `json:"username"`
+	UserRole  string    `json:"userRole"`
+	Issued_at time.Time `json:"issued_at"`
+	jwt.StandardClaims
+}
+
 func (jh *JwtHelper) GenerateToken(data map[string]interface{}) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -26,20 +34,22 @@ func (jh *JwtHelper) GenerateToken(data map[string]interface{}) (string, error) 
 
 func (jh *JwtHelper) VerifyToken(c *fiber.Ctx) error {
 
-	token := c.GetReqHeaders()["Authorization"]
-	resp := ResponseHelper{}
+	tokenStr := c.GetReqHeaders()["Authorization"]
+	resp := new(ResponseHelper)
 
-	if token == "" {
-		return resp.Unauthorized(c, "Access unauthorized")
+	if tokenStr == "" {
+		return resp.Unauthorized(c, "Access Unauthorized")
 	}
-	token = strings.Split(token, " ")[1]
+	tokenStr = strings.Split(tokenStr, " ")[1]
 
 	// fix this, still error
-	_, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenStr, &ClaimsData{}, func(t *jwt.Token) (interface{}, error) {
 		return []byte("asdfasdfasdf"), nil
 	})
 
 	if err == nil {
+		data, _ := token.Claims.(*ClaimsData)
+		c.Locals("user", data)
 		return c.Next()
 	} else if valErr, ok := err.(*jwt.ValidationError); ok {
 		if valErr.Errors&jwt.ValidationErrorMalformed != 0 {

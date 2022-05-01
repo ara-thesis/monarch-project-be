@@ -2,17 +2,26 @@ package helper
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/jackc/pgx"
 	_ "github.com/lib/pq"
 )
 
+// var (
+// 	host     = "localhost"
+// 	port     = "5432"
+// 	user     = "postgres"
+// 	password = "Raflis2001"
+// 	dbname   = "monarch-thesis"
+// )
+
 var (
-	host     = "localhost"
-	port     = "5432"
-	user     = "postgres"
-	password = "Raflis2001"
-	dbname   = "monarch-thesis"
+	host     = os.Getenv("PG_HOST")
+	port     = os.Getenv("PG_PORT")
+	user     = os.Getenv("PG_USER")
+	password = os.Getenv("PG_PASS")
+	dbname   = os.Getenv("PG_DB")
 )
 
 type PgHelper struct{}

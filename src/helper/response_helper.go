@@ -26,66 +26,66 @@ func (r *ResponseHelper) Data(c *fiber.Ctx, result []interface{}, msg string, co
 
 func (r *ResponseHelper) Success(c *fiber.Ctx, result []interface{}, msg string) error {
 
-	return c.Status(200).JSON(fiber.Map{
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"success": true,
 		"data":    result,
 		"message": msg,
-		"code":    404,
+		"code":    fiber.StatusOK,
 	})
 
 }
 
 func (r *ResponseHelper) Created(c *fiber.Ctx, msg string) error {
 
-	return c.Status(201).JSON(fiber.Map{
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"success": true,
 		"data":    nil,
 		"message": msg,
-		"code":    404,
+		"code":    fiber.StatusCreated,
 	})
 
 }
 
 func (r *ResponseHelper) NotFound(c *fiber.Ctx, msg string) error {
 
-	return c.Status(404).JSON(fiber.Map{
+	return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 		"success": false,
 		"data":    nil,
 		"message": msg,
-		"code":    404,
+		"code":    fiber.StatusNotFound,
 	})
 
 }
 
 func (r *ResponseHelper) ServerError(c *fiber.Ctx, msg string) error {
 
-	return c.Status(500).JSON(fiber.Map{
+	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 		"success": false,
 		"data":    nil,
 		"message": msg,
-		"code":    500,
+		"code":    fiber.StatusInternalServerError,
 	})
 
 }
 
 func (r *ResponseHelper) Unauthorized(c *fiber.Ctx, msg string) error {
 
-	return c.Status(403).JSON(fiber.Map{
+	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 		"success": false,
 		"data":    nil,
 		"message": msg,
-		"code":    401,
+		"code":    fiber.StatusUnauthorized,
 	})
 
 }
 
 func (r *ResponseHelper) Forbidden(c *fiber.Ctx, msg string) error {
 
-	return c.Status(403).JSON(fiber.Map{
+	return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 		"success": false,
 		"data":    nil,
 		"message": msg,
-		"code":    403,
+		"code":    fiber.StatusForbidden,
 	})
 
 }
