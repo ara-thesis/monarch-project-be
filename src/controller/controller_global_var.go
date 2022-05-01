@@ -8,6 +8,7 @@ var (
 		"account_userinfo": "userinfo",
 		"account_roleuser": "roleuser",
 		"account_roleinfo": "roleinfo",
+		"placeinfo":        "placeinfotb",
 	}
 	db        = new(helper.PgHelper)
 	resp      = new(helper.ResponseHelper)
