@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"os"
 
 	"github.com/ara-thesis/monarch-project-be/src/helper"
 
@@ -46,6 +45,8 @@ func pathapi(app *fiber.App) {
 	app.Put("/api/placeinfo", JwtHelper.VerifyToken, PlaceInfoHandler.AddAndEditPlaceInfoAdmin)
 	app.Delete("/api/placeinfo/:userId", JwtHelper.VerifyToken, PlaceInfoHandler.DeletePlaceInfoAdmin)
 
+	// app.Get("")
+
 }
 
 func main() {
@@ -54,5 +55,5 @@ func main() {
 	pathstatic(app)
 	middleware(app)
 	pathapi(app)
-	log.Fatal(app.Listen(":" + os.Getenv("PORT")))
+	log.Fatal(app.Listen(":" + helper.GetEnv("PORT")))
 }

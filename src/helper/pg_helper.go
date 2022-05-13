@@ -7,28 +7,13 @@ import (
 	_ "github.com/lib/pq"
 )
 
-var (
-	host     = "localhost"
-	port     = "5432"
-	user     = "postgres"
-	password = "Raflis2001"
-	dbname   = "monarch-thesis"
-)
-
-// var (
-// 	host     = os.Getenv("PG_HOST")
-// 	port     = os.Getenv("PG_PORT")
-// 	user     = os.Getenv("PG_USER")
-// 	password = os.Getenv("PG_PASS")
-// 	dbname   = os.Getenv("PG_DB")
-// )
-
 type PgHelper struct{}
 
 // sql query helper
 func (pg *PgHelper) Query(query string, args ...interface{}) ([]interface{}, error) {
 
-	connConfig := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	connConfig := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		GetEnv("PG_HOST"), GetEnv("PG_PORT"), GetEnv("PG_USER"), GetEnv("PG_PASS"), GetEnv("PG_DB"))
 	pgqlconn, errConn := pgx.ParseDSN(connConfig)
 	if errConn != nil {
 		return nil, errConn
@@ -71,7 +56,8 @@ func (pg *PgHelper) Query(query string, args ...interface{}) ([]interface{}, err
 // sql command helper
 func (pg *PgHelper) Command(query string, args ...interface{}) error {
 
-	connConfig := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	connConfig := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		GetEnv("PG_HOST"), GetEnv("PG_PORT"), GetEnv("PG_USER"), GetEnv("PG_PASS"), GetEnv("PG_DB"))
 	pgqlconn, errConn := pgx.ParseDSN(connConfig)
 	if errConn != nil {
 		return errConn
