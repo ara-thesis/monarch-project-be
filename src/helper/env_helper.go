@@ -17,6 +17,7 @@ type EnvHelper struct {
 
 type EnvInterface interface {
 	SetEnv()
+	GetEnv()
 }
 
 func SetEnv() {
