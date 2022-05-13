@@ -2,6 +2,8 @@ package controller
 
 import (
 	"fmt"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/ara-thesis/monarch-project-be/src/helper"
@@ -82,14 +84,23 @@ func (n *NewsHandler) AddNews(c *fiber.Ctx) error {
 		return resp.ServerError(c, reqErr.Error())
 	}
 
-	cmdStr := fmt.Sprintf(`
+	// file process
+	fileForm, _ := c.FormFile("image")
+	c.SaveFile(fileForm, fmt.Sprintf("./public/news/%s", fileForm.Filename))
+	fileUrl := fmt.Sprintf("/api/public/news/%s", fileForm.Filename)
+
+	// db process
+	cmdMainStr := fmt.Sprintf(`
 	INSERT INTO %s(
-		id, title, article, status, draft_status,
+		id, title, article, image, status, draft_status,
 		created_at, created_by, updated_at, updated_by)
-	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)`, tbname["news"])
-	resErr := db.Command(cmdStr, uuid, model.Title, model.Article, model.Status, model.Draft_status, time.Now(), userData.UserId, time.Now(), userData.UserId)
-	if resErr != nil {
-		return resp.ServerError(c, "Error Adding Data: "+resErr.Error())
+	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`, tbname["news"])
+	resMainErr := db.Command(
+		cmdMainStr, uuid, model.Title, model.Article, fileUrl, model.Status,
+		model.Draft_status, time.Now(), userData.UserId, time.Now(), userData.UserId,
+	)
+	if resMainErr != nil {
+		return resp.ServerError(c, "Error Adding Data: "+resMainErr.Error())
 	}
 
 	return resp.Created(c, "Success Adding Data")
@@ -158,6 +169,13 @@ func (n *NewsHandler) DeleteNews(c *fiber.Ctx) error {
 		return resp.NotFound(c, "Data Not Found")
 	}
 
+	// file process
+	fileNameRaw := checkData[0].(map[string]interface{})["image"]
+	fileName := strings.Split(fileNameRaw.(string), "/")
+
+	os.Remove(fmt.Sprintf("./public/news/%s", fileName[4]))
+
+	// db process
 	cmdStr := fmt.Sprintf("DELETE FROM %s WHERE id = '%s'", tbname["news"], c.Params("id"))
 	resErr := db.Command(cmdStr)
 	if resErr != nil {

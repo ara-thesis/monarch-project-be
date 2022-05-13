@@ -8,8 +8,16 @@ import (
 )
 
 var (
-	env map[string]string
+	env map[string]string = make(map[string]string)
 )
+
+type EnvHelper struct {
+	EnvInterface
+}
+
+type EnvInterface interface {
+	SetEnv()
+}
 
 func SetEnv() {
 	env_err := godotenv.Load(".env")
@@ -17,7 +25,6 @@ func SetEnv() {
 		log.Printf("failed to load env file: %s", env_err)
 		return
 	}
-	env = make(map[string]string)
 	env["PORT"] = os.Getenv("PORT")
 	env["PG_HOST"] = os.Getenv("PG_HOST")
 	env["PG_PORT"] = os.Getenv("PG_PORT")
