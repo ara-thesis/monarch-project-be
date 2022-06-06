@@ -72,6 +72,7 @@ func (n *NewsHandler) GetNewsById(c *fiber.Ctx) error {
 // add new news
 func (n *NewsHandler) AddNews(c *fiber.Ctx) error {
 
+	// check for permission
 	userData := c.Locals("user").(*helper.ClaimsData)
 	model := new(model.NewsModel)
 	uuid := uuid.New()
@@ -80,14 +81,24 @@ func (n *NewsHandler) AddNews(c *fiber.Ctx) error {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 
+	// fetch from form-data
 	if reqErr := c.BodyParser(model); reqErr != nil {
 		return resp.ServerError(c, reqErr.Error())
 	}
 
 	// file process
 	fileForm, _ := c.FormFile("image")
-	c.SaveFile(fileForm, fmt.Sprintf("./public/news/%s", fileForm.Filename))
-	fileUrl := fmt.Sprintf("/api/public/news/%s", fileForm.Filename)
+	fileName := fmt.Sprintf("%s-%s", uuid, fileForm.Filename)
+	for {
+		pathDir := "./public/news"
+		saveErr := c.SaveFile(fileForm, fmt.Sprintf("%s/%s", pathDir, fileName))
+		if saveErr != nil {
+			os.MkdirAll(pathDir, 0777)
+			continue
+		}
+		break
+	}
+	model.Image = fmt.Sprintf("/api/public/news/%s", fileName)
 
 	// db process
 	cmdMainStr := fmt.Sprintf(`
@@ -96,7 +107,7 @@ func (n *NewsHandler) AddNews(c *fiber.Ctx) error {
 		created_at, created_by, updated_at, updated_by)
 	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`, tbname["news"])
 	resMainErr := db.Command(
-		cmdMainStr, uuid, model.Title, model.Article, fileUrl, model.Status,
+		cmdMainStr, uuid, model.Title, model.Article, model.Image, model.Status,
 		model.Draft_status, time.Now(), userData.UserId, time.Now(), userData.UserId,
 	)
 	if resMainErr != nil {
@@ -109,6 +120,7 @@ func (n *NewsHandler) AddNews(c *fiber.Ctx) error {
 // edit news by id
 func (n *NewsHandler) EditNews(c *fiber.Ctx) error {
 
+	// check for permission
 	model := new(model.NewsModel)
 	userData := c.Locals("user").(*helper.ClaimsData)
 
@@ -116,10 +128,12 @@ func (n *NewsHandler) EditNews(c *fiber.Ctx) error {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 
+	// fetch from form-data
 	if reqErr := c.BodyParser(model); reqErr != nil {
 		return resp.ServerError(c, reqErr.Error())
 	}
 
+	// check for data availability
 	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE id = $1", tbname["news"])
 	checkData, checkErr := db.Query(qyStr, c.Params("id"))
 	if checkErr != nil {
@@ -129,27 +143,38 @@ func (n *NewsHandler) EditNews(c *fiber.Ctx) error {
 		return resp.NotFound(c, "Data Not Found")
 	}
 
-	checkFinData := checkData[0]
+	// file process
+	fileForm, fileErr := c.FormFile("image")
+	if fileErr == nil {
+		fileName := fmt.Sprintf("%s-%s", checkData[0].(map[string]interface{})["id"], fileForm.Filename)
+		c.SaveFile(fileForm, fmt.Sprintf("public/news/%s", fileName))
+		model.Image = fmt.Sprintf("/api/public/news/%s", fileName)
+	}
 
+	// fill empty data process
 	if model.Title == nil {
-		model.Title = checkFinData.(map[string]interface{})["title"]
+		model.Title = checkData[0].(map[string]interface{})["title"]
 	}
 	if model.Article == nil {
-		model.Article = checkFinData.(map[string]interface{})["article"]
+		model.Article = checkData[0].(map[string]interface{})["article"]
 	}
 	if model.Image == nil {
-		model.Image = checkFinData.(map[string]interface{})["image"]
+		model.Image = checkData[0].(map[string]interface{})["image"]
 	}
 	if model.Status == nil {
-		model.Status = checkFinData.(map[string]interface{})["status"]
+		model.Status = checkData[0].(map[string]interface{})["status"]
 	}
 	if model.Draft_status == nil {
-		model.Draft_status = checkFinData.(map[string]interface{})["draft_status"]
+		model.Draft_status = checkData[0].(map[string]interface{})["draft_status"]
 	}
 
-	cmdStr := fmt.Sprintf("UPDATE %s SET title=$1, article=$2, image=$3, status=$4, draft_status=$5, updated_by=$6, updated_at=$7", tbname["news"])
+	// delete data process
+	cmdStr := fmt.Sprintf(
+		"UPDATE %s SET title=$1, article=$2, image=$3, status=$4, draft_status=$5, updated_by=$6, updated_at=$7 WHERE id = $8",
+		tbname["news"])
 
-	cmdErr := db.Command(cmdStr, model.Title, model.Article, model.Image, model.Status, model.Draft_status, userData.UserId, time.Now())
+	cmdErr := db.Command(cmdStr, model.Title, model.Article, model.Image, model.Status,
+		model.Draft_status, userData.UserId, time.Now(), c.Params("id"))
 	if cmdErr != nil {
 		resp.ServerError(c, "Error Updating Data: "+cmdErr.Error())
 	}
@@ -160,6 +185,14 @@ func (n *NewsHandler) EditNews(c *fiber.Ctx) error {
 // delete news by id
 func (n *NewsHandler) DeleteNews(c *fiber.Ctx) error {
 
+	// check for permission
+	userData := c.Locals("user").(*helper.ClaimsData)
+
+	if userData.UserRole != "PLACE MANAGER" {
+		return resp.Forbidden(c, "Access Forbidden")
+	}
+
+	// check for file availability
 	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE id = '%s'", tbname["news"], c.Params("id"))
 	checkData, checkErr := db.Query(qyStr)
 	if checkErr != nil {
@@ -169,13 +202,13 @@ func (n *NewsHandler) DeleteNews(c *fiber.Ctx) error {
 		return resp.NotFound(c, "Data Not Found")
 	}
 
-	// file process
+	// delete file process
 	fileNameRaw := checkData[0].(map[string]interface{})["image"]
 	fileName := strings.Split(fileNameRaw.(string), "/")
 
 	os.Remove(fmt.Sprintf("./public/news/%s", fileName[4]))
 
-	// db process
+	// delete data process
 	cmdStr := fmt.Sprintf("DELETE FROM %s WHERE id = '%s'", tbname["news"], c.Params("id"))
 	resErr := db.Command(cmdStr)
 	if resErr != nil {

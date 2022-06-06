@@ -1,6 +1,7 @@
-/.vscode
-/bin
-/build
+.vscode/
+bin/
+build/
+public/
 
 .env
 

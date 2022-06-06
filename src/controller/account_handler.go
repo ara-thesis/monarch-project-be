@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/ara-thesis/monarch-project-be/src/helper"
 	"github.com/ara-thesis/monarch-project-be/src/model"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -107,5 +108,13 @@ func (u *AccountHandler) EditUserAsAdmin(c *fiber.Ctx) error {
 }
 
 func (u *AccountHandler) DeleteUser(c *fiber.Ctx) error {
+
+	// check for permission
+	userData := c.Locals("user").(*helper.ClaimsData)
+
+	if userData.UserRole != "ADMIN" {
+		return resp.Forbidden(c, "Access Forbidden")
+	}
+
 	return c.SendString("Test")
 }
