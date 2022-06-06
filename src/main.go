@@ -7,10 +7,11 @@ import (
 
 	"github.com/ara-thesis/monarch-project-be/src/controller"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 func middleware(app *fiber.App) {
-
+	app.Use(cors.New())
 }
 
 func pathstatic(app *fiber.App) {
@@ -63,8 +64,8 @@ func pathapi(app *fiber.App) {
 func main() {
 	helper.SetEnv()
 	app := fiber.New()
-	pathstatic(app)
 	middleware(app)
+	pathstatic(app)
 	pathapi(app)
 	log.Fatal(app.Listen(":" + helper.GetEnv("PORT")))
 }
