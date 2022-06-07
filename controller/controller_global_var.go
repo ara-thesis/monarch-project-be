@@ -1,6 +1,6 @@
 package controller
 
-import "github.com/ara-thesis/monarch-project-be/src/helper"
+import "github.com/ara-thesis/monarch-project-be/helper"
 
 type minioCred struct {
 	endpoint        string

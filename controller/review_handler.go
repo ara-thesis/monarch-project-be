@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ara-thesis/monarch-project-be/src/helper"
-	"github.com/ara-thesis/monarch-project-be/src/model"
+	"github.com/ara-thesis/monarch-project-be/helper"
+	"github.com/ara-thesis/monarch-project-be/model"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )

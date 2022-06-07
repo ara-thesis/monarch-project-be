@@ -3,9 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/ara-thesis/monarch-project-be/src/helper"
-
-	"github.com/ara-thesis/monarch-project-be/src/controller"
+	"github.com/ara-thesis/monarch-project-be/controller"
+	"github.com/ara-thesis/monarch-project-be/helper"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 )
