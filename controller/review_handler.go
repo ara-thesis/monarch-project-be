@@ -12,10 +12,18 @@ import (
 
 type ReviewHandler struct{}
 
+//////////////////////
+// fetch all comment
+//////////////////////
 func (pinf *ReviewHandler) GetComment(c *fiber.Ctx) error {
 
-	qyStr := fmt.Sprintf("SELECT * FROM %s", tbname["placeinfo"])
-	resQy, resErr := db.Query(qyStr)
+	placeId := c.Query("placeid")
+	if placeId == "" {
+		return resp.BadRequest(c, "Need more query (placeid is needed)")
+	}
+
+	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE place_id = $1", tbname["placeinfo"])
+	resQy, resErr := db.Query(qyStr, placeId)
 
 	if resErr != nil {
 		return resp.ServerError(c, resErr.Error())
@@ -25,6 +33,9 @@ func (pinf *ReviewHandler) GetComment(c *fiber.Ctx) error {
 
 }
 
+////////////////////
+// add new comment
+////////////////////
 func (pinf *ReviewHandler) AddComment(c *fiber.Ctx) error {
 
 	userData := c.Locals("user").(*helper.ClaimsData)
@@ -42,9 +53,9 @@ func (pinf *ReviewHandler) AddComment(c *fiber.Ctx) error {
 
 	// db process
 	cmdMainStr := fmt.Sprintf(`
-	INSERT INTO %s(id, comment, created_at, created_by, updated_at, updated_by) VALUES($1, $2, $3, $4, $5, $6)`, tbname["review"])
+	INSERT INTO %s(id, place_id, comment, created_at, created_by, updated_at, updated_by) VALUES($1, $2, $3, $4, $5, $6)`, tbname["review"])
 	resMainErr := db.Command(
-		cmdMainStr, uuid, model.Comment, time.Now(), userData.UserId, time.Now(), userData.UserId,
+		cmdMainStr, uuid, model.Place_Id, model.Comment, time.Now(), userData.UserId, time.Now(), userData.UserId,
 	)
 	if resMainErr != nil {
 		return resp.ServerError(c, "Error Adding Data: "+resMainErr.Error())
@@ -53,6 +64,9 @@ func (pinf *ReviewHandler) AddComment(c *fiber.Ctx) error {
 	return resp.Created(c, "Success Adding Data")
 }
 
+///////////////////
+// delete comment
+///////////////////
 func (pinf *ReviewHandler) DeleteCommentAdmin(c *fiber.Ctx) error {
 
 	userData := c.Locals("user").(*helper.ClaimsData)
@@ -70,6 +84,11 @@ func (pinf *ReviewHandler) DeleteCommentAdmin(c *fiber.Ctx) error {
 	}
 	if checkData[0] == nil {
 		return resp.NotFound(c, "Data Not Found")
+	}
+
+	// check for permitted user
+	if userData.Id != checkData[0].(map[string]interface{})["created_by"] {
+		return resp.Forbidden(c, "Delete Forbidden")
 	}
 
 	// delete process

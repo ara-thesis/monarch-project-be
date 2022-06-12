@@ -26,6 +26,7 @@ func pathapi(app *fiber.App) {
 	PlaceInfoHandler := new(controller.PlaceInfoHandler)
 	BannerHandler := new(controller.BannerHandler)
 	ReviewHandler := new(controller.ReviewHandler)
+	TicketHandler := new(controller.TicketHandler)
 
 	app.Get("/api/auth", AccountHandler.GetUserInfo)
 	app.Post("/api/auth/regist/placemanager", AccountHandler.CreateUserPlaceManager)
@@ -53,6 +54,13 @@ func pathapi(app *fiber.App) {
 	app.Post("/api/banner", JwtHelper.VerifyToken, BannerHandler.AddBanner)
 	app.Put("/api/banner/:id", JwtHelper.VerifyToken, BannerHandler.EditBanner)
 	app.Delete("/api/banner/:id", JwtHelper.VerifyToken, BannerHandler.DeleteBanner)
+
+	app.Get("/api/ticket", TicketHandler.GetTicket)
+	app.Get("/api/ticket/:id", TicketHandler.GetTicketById)
+	app.Get("/api/ticket/admin", JwtHelper.VerifyToken, TicketHandler.GetTicketAdmin)
+	app.Post("/api/ticket", JwtHelper.VerifyToken, TicketHandler.AddTicket)
+	app.Put("/api/ticket/:id", JwtHelper.VerifyToken, TicketHandler.EditTicket)
+	app.Delete("/api/ticket/:id", JwtHelper.VerifyToken, TicketHandler.DeleteTicket)
 
 	app.Get("/api/review", ReviewHandler.GetComment)
 	app.Post("/api/review", JwtHelper.VerifyToken, ReviewHandler.AddComment)

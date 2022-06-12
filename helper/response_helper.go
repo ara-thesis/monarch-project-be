@@ -46,6 +46,17 @@ func (r *ResponseHelper) Created(c *fiber.Ctx, msg string) error {
 
 }
 
+func (r *ResponseHelper) BadRequest(c *fiber.Ctx, msg string) error {
+
+	return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+		"success": false,
+		"data":    nil,
+		"message": msg,
+		"code":    fiber.StatusBadRequest,
+	})
+
+}
+
 func (r *ResponseHelper) NotFound(c *fiber.Ctx, msg string) error {
 
 	return c.Status(fiber.StatusNotFound).JSON(fiber.Map{

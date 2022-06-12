@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -18,15 +19,27 @@ type BannerHandler struct{}
 var ()
 
 ////////////////////
-// fetch all news
+// fetch all banner
 ////////////////////
 func (n *BannerHandler) GetBanners(c *fiber.Ctx) error {
 
 	// ReqHeader := c.GetReqHeaders()
 	// AuthToken := strings.Split(ReqHeader["Authorization"], " ")[1]
 
-	qyStr := fmt.Sprintf("SELECT * FROM %s", tbname["banner"])
-	resQy, resErr := db.Query(qyStr)
+	row, rowErr := strconv.Atoi(c.Query("row", "10"))
+	if rowErr != nil {
+		row = 10
+	}
+	if row > 100 {
+		row = 100
+	}
+	page, pageErr := strconv.Atoi(c.Query("page", "1"))
+	if pageErr != nil {
+		page = 1
+	}
+
+	qyStr := fmt.Sprintf("SELECT * FROM %s LIMIT $1 OFFSET $2", tbname["banner"])
+	resQy, resErr := db.Query(qyStr, row, (page-1)*row)
 
 	if resErr != nil {
 		return resp.ServerError(c, resErr.Error())
@@ -36,7 +49,7 @@ func (n *BannerHandler) GetBanners(c *fiber.Ctx) error {
 }
 
 ///////////////////////
-// fetch news by id
+// fetch banner by id
 ///////////////////////
 func (n *BannerHandler) GetBannerById(c *fiber.Ctx) error {
 
@@ -57,7 +70,7 @@ func (n *BannerHandler) GetBannerById(c *fiber.Ctx) error {
 }
 
 ///////////////////
-// add new news
+// add new banner
 //////////////////
 func (n *BannerHandler) AddBanner(c *fiber.Ctx) error {
 
@@ -105,7 +118,7 @@ func (n *BannerHandler) AddBanner(c *fiber.Ctx) error {
 }
 
 /////////////////////
-// edit news by id
+// edit banner by id
 /////////////////////
 func (n *BannerHandler) EditBanner(c *fiber.Ctx) error {
 
@@ -165,7 +178,7 @@ func (n *BannerHandler) EditBanner(c *fiber.Ctx) error {
 }
 
 ///////////////////////
-// delete news by id
+// delete banner by id
 ///////////////////////
 func (n *BannerHandler) DeleteBanner(c *fiber.Ctx) error {
 

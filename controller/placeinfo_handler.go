@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/ara-thesis/monarch-project-be/helper"
@@ -12,10 +13,25 @@ import (
 
 type PlaceInfoHandler struct{}
 
+/////////////////////////
+// fetch all place info
+/////////////////////////
 func (pinf *PlaceInfoHandler) GetPlaceInfo(c *fiber.Ctx) error {
 
-	qyStr := fmt.Sprintf("SELECT * FROM %s", tbname["placeinfo"])
-	resQy, resErr := db.Query(qyStr)
+	row, rowErr := strconv.Atoi(c.Query("row", "10"))
+	if rowErr != nil {
+		row = 10
+	}
+	if row > 100 {
+		row = 100
+	}
+	page, pageErr := strconv.Atoi(c.Query("page", "1"))
+	if pageErr != nil {
+		page = 1
+	}
+
+	qyStr := fmt.Sprintf("SELECT * FROM %s LIMIT $1 OFFSET $2", tbname["placeinfo"])
+	resQy, resErr := db.Query(qyStr, row, (page-1)*row)
 
 	if resErr != nil {
 		return resp.ServerError(c, resErr.Error())
@@ -25,6 +41,9 @@ func (pinf *PlaceInfoHandler) GetPlaceInfo(c *fiber.Ctx) error {
 
 }
 
+///////////////////////////
+// fetch place info by id
+///////////////////////////
 func (pinf *PlaceInfoHandler) GetPlaceInfoById(c *fiber.Ctx) error {
 
 	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE id = $1", tbname["placeinfo"])
@@ -40,6 +59,9 @@ func (pinf *PlaceInfoHandler) GetPlaceInfoById(c *fiber.Ctx) error {
 
 }
 
+///////////////////////////
+// fetch place info admin
+///////////////////////////
 func (pinf *PlaceInfoHandler) GetPlaceInfoAdmin(c *fiber.Ctx) error {
 
 	userData := c.Locals("user").(*helper.ClaimsData)
@@ -59,6 +81,9 @@ func (pinf *PlaceInfoHandler) GetPlaceInfoAdmin(c *fiber.Ctx) error {
 
 }
 
+//////////////////////////////
+// add and update place info
+//////////////////////////////
 func (pinf *PlaceInfoHandler) AddAndEditPlaceInfoAdmin(c *fiber.Ctx) error {
 
 	userData := c.Locals("user").(*helper.ClaimsData)
@@ -79,15 +104,25 @@ func (pinf *PlaceInfoHandler) AddAndEditPlaceInfoAdmin(c *fiber.Ctx) error {
 		return resp.ServerError(c, "Server Error")
 	}
 
+	place_loc := ""
+
 	if qyRes[0] == nil {
+
+		if model.Place_loc_long != nil && model.Place_loc_lat != nil {
+			place_loc = fmt.Sprintf("POINT(%s %s)", model.Place_loc_long, model.Place_loc_lat)
+		} else {
+			place_loc = "POINT(0 0)"
+		}
+
 		cmdStr := fmt.Sprintf(`
 		INSERT INTO %s(
-			id, place_name, place_info, place_city, place_stateprov, place_coutnry,
-			place_postal, palce_loc, place_opentime, place_closetime,
+			id, place_name, place_info, place_street, place_city, place_stateprov, place_country,
+			place_postal, place_loc, place_opentime, place_closetime,
 			created_at, created_by, updated_at, updated_by)
-		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`, tbname["placeinfo"])
-		resErr := db.Command(cmdStr, uuid, model.Place_name, model.Place_info, model.Place_city, model.Place_stateprov, model.Place_country,
-			model.Place_postal, model.Place_loc, model.Place_opentime, model.Place_closetime, time.Now(), userData.UserId, time.Now(), userData.UserId)
+		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`, tbname["placeinfo"])
+		resErr := db.Command(cmdStr, uuid, model.Place_name, model.Place_info, model.Place_street, model.Place_city,
+			model.Place_stateprov, model.Place_country, model.Place_postal, place_loc, model.Place_opentime,
+			model.Place_closetime, time.Now(), userData.UserId, time.Now(), userData.UserId)
 		if resErr != nil {
 			return resp.ServerError(c, "Error Adding Data: "+resErr.Error())
 		}
@@ -102,6 +137,9 @@ func (pinf *PlaceInfoHandler) AddAndEditPlaceInfoAdmin(c *fiber.Ctx) error {
 	if model.Place_info == nil {
 		model.Place_info = qyFinData.(map[string]interface{})["place_info"]
 	}
+	if model.Place_street == nil {
+		model.Place_street = qyFinData.(map[string]interface{})["place_street"]
+	}
 	if model.Place_city == nil {
 		model.Place_city = qyFinData.(map[string]interface{})["place_city"]
 	}
@@ -114,8 +152,8 @@ func (pinf *PlaceInfoHandler) AddAndEditPlaceInfoAdmin(c *fiber.Ctx) error {
 	if model.Place_postal == nil {
 		model.Place_postal = qyFinData.(map[string]interface{})["place_postal"]
 	}
-	if model.Place_loc == nil {
-		model.Place_loc = qyFinData.(map[string]interface{})["place_loc"]
+	if model.Place_loc_lat == nil || model.Place_loc_long == nil {
+		place_loc = fmt.Sprintf("%s", qyFinData.(map[string]interface{})["place_loc"])
 	}
 	if model.Place_opentime == nil {
 		model.Place_opentime = qyFinData.(map[string]interface{})["place_opentime"]
@@ -126,11 +164,11 @@ func (pinf *PlaceInfoHandler) AddAndEditPlaceInfoAdmin(c *fiber.Ctx) error {
 
 	cmdStr := fmt.Sprintf(`
 	UPDATE %s SET
-	place_name=$1, place_info=$2, place_city=$3, place_stateprov=$4, place_country=$5,
-	place_postal=$6, place_loc=$7, place_opentime=$8, place_closetime=$9,
-	updated_at=$10, updated_by=$11`, tbname["placeinfo"])
-	resErr := db.Command(cmdStr, model.Place_name, model.Place_info, model.Place_city, model.Place_stateprov, model.Place_country,
-		model.Place_postal, model.Place_loc, model.Place_opentime, model.Place_closetime, time.Now(), userData.UserId)
+	place_name=$1, place_info=$2, place_street=$3, place_city=$4, place_stateprov=$5, place_country=$6,
+	place_postal=$7, place_loc=$8, place_opentime=$9, place_closetime=$10,
+	updated_at=$11, updated_by=$12`, tbname["placeinfo"])
+	resErr := db.Command(cmdStr, model.Place_name, model.Place_info, model.Place_street, model.Place_city, model.Place_stateprov,
+		model.Place_country, model.Place_postal, place_loc, model.Place_opentime, model.Place_closetime, time.Now(), userData.UserId)
 	if resErr != nil {
 		return resp.ServerError(c, "Server Error: "+resErr.Error())
 	}
@@ -138,6 +176,9 @@ func (pinf *PlaceInfoHandler) AddAndEditPlaceInfoAdmin(c *fiber.Ctx) error {
 	return resp.Success(c, nil, "Success Updating Data")
 }
 
+//////////////////////
+// delete place info
+//////////////////////
 func (pinf *PlaceInfoHandler) DeletePlaceInfoAdmin(c *fiber.Ctx) error {
 
 	userData := c.Locals("user").(*helper.ClaimsData)

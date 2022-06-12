@@ -18,6 +18,7 @@ var (
 		"placeinfo": "placeinfotb",
 		"banner":    "bannertb",
 		"review":    "reviewtb",
+		"ticket":    "tickettb",
 	}
 	db               = new(helper.PgHelper)
 	resp             = new(helper.ResponseHelper)
