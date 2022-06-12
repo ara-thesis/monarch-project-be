@@ -75,7 +75,8 @@ func (n *BannerHandler) GetBannerById(c *fiber.Ctx) error {
 func (n *BannerHandler) AddBanner(c *fiber.Ctx) error {
 
 	userData := c.Locals("user").(*helper.ClaimsData)
-	model := new(model.BannerModel)
+	// model := new(model.BannerModel)
+	model := &model.BannerModel{}
 	uuid := uuid.New()
 
 	// permission check
@@ -87,11 +88,13 @@ func (n *BannerHandler) AddBanner(c *fiber.Ctx) error {
 		return resp.ServerError(c, reqErr.Error())
 	}
 
+	test := c.FormValue("title")
+
 	// file process
 	fileForm, _ := c.FormFile("image")
 	fileName := fmt.Sprintf("%s-%s", uuid, fileForm.Filename)
 	for {
-		pathDir := "public/banner"
+		pathDir := "public/banner" + test
 		saveErr := c.SaveFile(fileForm, fmt.Sprintf("%s/%s", pathDir, fileName))
 		if saveErr != nil {
 			os.MkdirAll(pathDir, 0777)
