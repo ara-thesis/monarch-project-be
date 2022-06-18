@@ -108,7 +108,7 @@ func (pinf *PlaceInfoHandler) AddAndEditPlaceInfoAdmin(c *fiber.Ctx) error {
 
 	if qyRes[0] == nil {
 
-		if model.Place_loc_long != nil && model.Place_loc_lat != nil {
+		if model.Place_loc_long != 0 && model.Place_loc_lat != 0 {
 			place_loc = fmt.Sprintf("POINT(%s %s)", model.Place_loc_long, model.Place_loc_lat)
 		} else {
 			place_loc = "POINT(0 0)"
@@ -131,35 +131,35 @@ func (pinf *PlaceInfoHandler) AddAndEditPlaceInfoAdmin(c *fiber.Ctx) error {
 
 	qyFinData := qyRes[0]
 
-	if model.Place_name == nil {
-		model.Place_name = qyFinData.(map[string]interface{})["place_name"]
+	if model.Place_name == "" {
+		model.Place_name = qyFinData.(map[string]interface{})["place_name"].(string)
 	}
-	if model.Place_info == nil {
-		model.Place_info = qyFinData.(map[string]interface{})["place_info"]
+	if model.Place_info == "" {
+		model.Place_info = qyFinData.(map[string]interface{})["place_info"].(string)
 	}
-	if model.Place_street == nil {
-		model.Place_street = qyFinData.(map[string]interface{})["place_street"]
+	if model.Place_street == "" {
+		model.Place_street = qyFinData.(map[string]interface{})["place_street"].(string)
 	}
-	if model.Place_city == nil {
-		model.Place_city = qyFinData.(map[string]interface{})["place_city"]
+	if model.Place_city == "" {
+		model.Place_city = qyFinData.(map[string]interface{})["place_city"].(string)
 	}
-	if model.Place_stateprov == nil {
-		model.Place_stateprov = qyFinData.(map[string]interface{})["place_stateprov"]
+	if model.Place_stateprov == "" {
+		model.Place_stateprov = qyFinData.(map[string]interface{})["place_stateprov"].(string)
 	}
-	if model.Place_country == nil {
-		model.Place_country = qyFinData.(map[string]interface{})["place_country"]
+	if model.Place_country == "" {
+		model.Place_country = qyFinData.(map[string]interface{})["place_country"].(string)
 	}
-	if model.Place_postal == nil {
-		model.Place_postal = qyFinData.(map[string]interface{})["place_postal"]
+	if model.Place_postal == "" {
+		model.Place_postal = qyFinData.(map[string]interface{})["place_postal"].(string)
 	}
-	if model.Place_loc_lat == nil || model.Place_loc_long == nil {
+	if model.Place_loc_lat == 0 || model.Place_loc_long == 0 {
 		place_loc = fmt.Sprintf("%s", qyFinData.(map[string]interface{})["place_loc"])
 	}
-	if model.Place_opentime == nil {
-		model.Place_opentime = qyFinData.(map[string]interface{})["place_opentime"]
+	if model.Place_opentime == 0 {
+		model.Place_opentime = qyFinData.(map[string]interface{})["place_opentime"].(int)
 	}
-	if model.Place_closetime == nil {
-		model.Place_closetime = qyFinData.(map[string]interface{})["place_closetime"]
+	if model.Place_closetime == 0 {
+		model.Place_closetime = qyFinData.(map[string]interface{})["place_closetime"].(int)
 	}
 
 	cmdStr := fmt.Sprintf(`

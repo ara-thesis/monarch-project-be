@@ -106,6 +106,8 @@ func (n *NewsHandler) GetNewsById(c *fiber.Ctx) error {
 /////////////////
 func (n *NewsHandler) AddNews(c *fiber.Ctx) error {
 
+	// return c.Send(c.Body())
+
 	// check for permission
 	userData := c.Locals("user").(*helper.ClaimsData)
 	model := new(model.NewsModel)
@@ -115,10 +117,14 @@ func (n *NewsHandler) AddNews(c *fiber.Ctx) error {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 
-	// fetch from form-data
+	// // fetch from form-data
 	if reqErr := c.BodyParser(model); reqErr != nil {
 		return resp.ServerError(c, reqErr.Error())
 	}
+
+	// return c.JSON(fiber.Map{
+	// 	"bool": model.Status,
+	// })
 
 	// file process
 	fileForm, _ := c.FormFile("image")
@@ -188,20 +194,20 @@ func (n *NewsHandler) EditNews(c *fiber.Ctx) error {
 	}
 
 	// fill empty data process
-	if model.Title == nil {
-		model.Title = checkData[0].(map[string]interface{})["title"]
+	if model.Title == "" {
+		model.Title = checkData[0].(map[string]interface{})["title"].(string)
 	}
-	if model.Article == nil {
-		model.Article = checkData[0].(map[string]interface{})["article"]
+	if model.Article == "" {
+		model.Article = checkData[0].(map[string]interface{})["article"].(string)
 	}
 	if model.Image == nil {
 		model.Image = checkData[0].(map[string]interface{})["image"]
 	}
-	if model.Status == nil {
-		model.Status = checkData[0].(map[string]interface{})["status"]
+	if model.Status == false {
+		model.Status = checkData[0].(map[string]interface{})["status"].(bool)
 	}
-	if model.Draft_status == nil {
-		model.Draft_status = checkData[0].(map[string]interface{})["draft_status"]
+	if model.Draft_status == false {
+		model.Draft_status = checkData[0].(map[string]interface{})["draft_status"].(bool)
 	}
 
 	// delete data process

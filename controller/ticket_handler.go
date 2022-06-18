@@ -138,17 +138,17 @@ func (n *TicketHandler) EditTicket(c *fiber.Ctx) error {
 	}
 
 	// fill empty data process
-	if model.Ticket_name == nil {
-		model.Ticket_name = checkData[0].(map[string]interface{})["name"]
+	if model.Ticket_name == "" {
+		model.Ticket_name = checkData[0].(map[string]interface{})["name"].(string)
 	}
-	if model.Ticket_details == nil {
-		model.Ticket_details = checkData[0].(map[string]interface{})["details"]
+	if model.Ticket_details == "" {
+		model.Ticket_details = checkData[0].(map[string]interface{})["details"].(string)
 	}
-	if model.Ticket_placeid == nil {
-		model.Ticket_placeid = checkData[0].(map[string]interface{})["place_id"]
+	if model.Ticket_placeid == "" {
+		model.Ticket_placeid = checkData[0].(map[string]interface{})["place_id"].(string)
 	}
-	if model.Ticket_price == nil {
-		model.Ticket_price = checkData[0].(map[string]interface{})["price"]
+	if model.Ticket_price == 0 {
+		model.Ticket_price = checkData[0].(map[string]interface{})["price"].(int)
 	}
 
 	// delete data process

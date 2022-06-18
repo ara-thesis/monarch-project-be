@@ -16,8 +16,6 @@ import (
 
 type BannerHandler struct{}
 
-var ()
-
 ////////////////////
 // fetch all banner
 ////////////////////
