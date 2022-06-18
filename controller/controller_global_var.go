@@ -2,13 +2,6 @@ package controller
 
 import "github.com/ara-thesis/monarch-project-be/helper"
 
-type minioCred struct {
-	endpoint        string
-	accessKeyId     string
-	secretAccessKey string
-	useSSL          bool
-}
-
 var (
 	tbname = map[string]string{
 		"news":             "newstb",

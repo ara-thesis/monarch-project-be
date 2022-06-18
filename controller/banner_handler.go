@@ -154,17 +154,17 @@ func (n *BannerHandler) EditBanner(c *fiber.Ctx) error {
 	}
 
 	// replace data process
-	if model.Title == nil {
-		model.Title = checkData[0].(map[string]interface{})["title"]
+	if model.Title == "" {
+		model.Title = checkData[0].(map[string]interface{})["title"].(string)
 	}
-	if model.Detail == nil {
-		model.Detail = checkData[0].(map[string]interface{})["article"]
+	if model.Detail == "" {
+		model.Detail = checkData[0].(map[string]interface{})["article"].(string)
 	}
 	if model.Image == nil {
 		model.Image = checkData[0].(map[string]interface{})["image"]
 	}
-	if model.Status == nil {
-		model.Status = checkData[0].(map[string]interface{})["status"]
+	if !model.Status {
+		model.Status = checkData[0].(map[string]interface{})["status"].(bool)
 	}
 
 	// update data process

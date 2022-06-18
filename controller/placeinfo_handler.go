@@ -109,7 +109,7 @@ func (pinf *PlaceInfoHandler) AddAndEditPlaceInfoAdmin(c *fiber.Ctx) error {
 	if qyRes[0] == nil {
 
 		if model.Place_loc_long != 0 && model.Place_loc_lat != 0 {
-			place_loc = fmt.Sprintf("POINT(%s %s)", model.Place_loc_long, model.Place_loc_lat)
+			place_loc = fmt.Sprintf("POINT(%f %f)", model.Place_loc_long, model.Place_loc_lat)
 		} else {
 			place_loc = "POINT(0 0)"
 		}

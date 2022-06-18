@@ -203,10 +203,10 @@ func (n *NewsHandler) EditNews(c *fiber.Ctx) error {
 	if model.Image == nil {
 		model.Image = checkData[0].(map[string]interface{})["image"]
 	}
-	if model.Status == false {
+	if !model.Status {
 		model.Status = checkData[0].(map[string]interface{})["status"].(bool)
 	}
-	if model.Draft_status == false {
+	if !model.Draft_status {
 		model.Draft_status = checkData[0].(map[string]interface{})["draft_status"].(bool)
 	}
 
