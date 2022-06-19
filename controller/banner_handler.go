@@ -3,11 +3,12 @@ package controller
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
-	"github.com/ara-thesis/monarch-project-be/src/helper"
-	"github.com/ara-thesis/monarch-project-be/src/model"
+	"github.com/ara-thesis/monarch-project-be/helper"
+	"github.com/ara-thesis/monarch-project-be/model"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
@@ -15,18 +16,28 @@ import (
 
 type BannerHandler struct{}
 
-var ()
-
 ////////////////////
-// fetch all news
+// fetch all banner
 ////////////////////
 func (n *BannerHandler) GetBanners(c *fiber.Ctx) error {
 
 	// ReqHeader := c.GetReqHeaders()
 	// AuthToken := strings.Split(ReqHeader["Authorization"], " ")[1]
 
-	qyStr := fmt.Sprintf("SELECT * FROM %s", tbname["banner"])
-	resQy, resErr := db.Query(qyStr)
+	row, rowErr := strconv.Atoi(c.Query("row", "10"))
+	if rowErr != nil {
+		row = 10
+	}
+	if row > 100 {
+		row = 100
+	}
+	page, pageErr := strconv.Atoi(c.Query("page", "1"))
+	if pageErr != nil {
+		page = 1
+	}
+
+	qyStr := fmt.Sprintf("SELECT * FROM %s LIMIT $1 OFFSET $2", tbname["banner"])
+	resQy, resErr := db.Query(qyStr, row, (page-1)*row)
 
 	if resErr != nil {
 		return resp.ServerError(c, resErr.Error())
@@ -36,7 +47,7 @@ func (n *BannerHandler) GetBanners(c *fiber.Ctx) error {
 }
 
 ///////////////////////
-// fetch news by id
+// fetch banner by id
 ///////////////////////
 func (n *BannerHandler) GetBannerById(c *fiber.Ctx) error {
 
@@ -57,12 +68,13 @@ func (n *BannerHandler) GetBannerById(c *fiber.Ctx) error {
 }
 
 ///////////////////
-// add new news
+// add new banner
 //////////////////
 func (n *BannerHandler) AddBanner(c *fiber.Ctx) error {
 
 	userData := c.Locals("user").(*helper.ClaimsData)
-	model := new(model.BannerModel)
+	// model := new(model.BannerModel)
+	model := &model.BannerModel{}
 	uuid := uuid.New()
 
 	// permission check
@@ -74,11 +86,13 @@ func (n *BannerHandler) AddBanner(c *fiber.Ctx) error {
 		return resp.ServerError(c, reqErr.Error())
 	}
 
+	test := c.FormValue("title")
+
 	// file process
 	fileForm, _ := c.FormFile("image")
 	fileName := fmt.Sprintf("%s-%s", uuid, fileForm.Filename)
 	for {
-		pathDir := "public/banner"
+		pathDir := "public/banner" + test
 		saveErr := c.SaveFile(fileForm, fmt.Sprintf("%s/%s", pathDir, fileName))
 		if saveErr != nil {
 			os.MkdirAll(pathDir, 0777)
@@ -105,7 +119,7 @@ func (n *BannerHandler) AddBanner(c *fiber.Ctx) error {
 }
 
 /////////////////////
-// edit news by id
+// edit banner by id
 /////////////////////
 func (n *BannerHandler) EditBanner(c *fiber.Ctx) error {
 
@@ -140,17 +154,17 @@ func (n *BannerHandler) EditBanner(c *fiber.Ctx) error {
 	}
 
 	// replace data process
-	if model.Title == nil {
-		model.Title = checkData[0].(map[string]interface{})["title"]
+	if model.Title == "" {
+		model.Title = checkData[0].(map[string]interface{})["title"].(string)
 	}
-	if model.Detail == nil {
-		model.Detail = checkData[0].(map[string]interface{})["article"]
+	if model.Detail == "" {
+		model.Detail = checkData[0].(map[string]interface{})["article"].(string)
 	}
 	if model.Image == nil {
 		model.Image = checkData[0].(map[string]interface{})["image"]
 	}
-	if model.Status == nil {
-		model.Status = checkData[0].(map[string]interface{})["status"]
+	if !model.Status {
+		model.Status = checkData[0].(map[string]interface{})["status"].(bool)
 	}
 
 	// update data process
@@ -165,7 +179,7 @@ func (n *BannerHandler) EditBanner(c *fiber.Ctx) error {
 }
 
 ///////////////////////
-// delete news by id
+// delete banner by id
 ///////////////////////
 func (n *BannerHandler) DeleteBanner(c *fiber.Ctx) error {
 

@@ -5,6 +5,9 @@ public/
 
 .env
 
+# fiber tools binary for gofiber development
+fiber
+
 # Binaries for programs and plugins
 *.exe
 *.exe~

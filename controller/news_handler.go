@@ -3,11 +3,12 @@ package controller
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
-	"github.com/ara-thesis/monarch-project-be/src/helper"
-	"github.com/ara-thesis/monarch-project-be/src/model"
+	"github.com/ara-thesis/monarch-project-be/helper"
+	"github.com/ara-thesis/monarch-project-be/model"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
@@ -15,14 +16,28 @@ import (
 
 type NewsHandler struct{}
 
+///////////////////
 // fetch all news
+///////////////////
 func (n *NewsHandler) GetNews(c *fiber.Ctx) error {
 
 	// ReqHeader := c.GetReqHeaders()
 	// AuthToken := strings.Split(ReqHeader["Authorization"], " ")[1]
 
-	qyStr := fmt.Sprintf("SELECT * FROM %s", tbname["news"])
-	resQy, resErr := db.Query(qyStr)
+	row, rowErr := strconv.Atoi(c.Query("row", "10"))
+	if rowErr != nil {
+		row = 10
+	}
+	if row > 100 {
+		row = 100
+	}
+	page, pageErr := strconv.Atoi(c.Query("page", "1"))
+	if pageErr != nil {
+		page = 1
+	}
+
+	qyStr := fmt.Sprintf("SELECT * FROM %s LIMIT $1 OFFSET $2", tbname["news"])
+	resQy, resErr := db.Query(qyStr, row, (page-1)*row)
 
 	if resErr != nil {
 		return resp.ServerError(c, resErr.Error())
@@ -31,6 +46,9 @@ func (n *NewsHandler) GetNews(c *fiber.Ctx) error {
 	return resp.Success(c, resQy, "Success Fetching Data")
 }
 
+/////////////////////
+// fetch news admin
+/////////////////////
 func (n *NewsHandler) GetNewsAdmin(c *fiber.Ctx) error {
 
 	userData := c.Locals("user").(*helper.ClaimsData)
@@ -39,8 +57,20 @@ func (n *NewsHandler) GetNewsAdmin(c *fiber.Ctx) error {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 
-	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE created_by = $1", tbname["news"])
-	resQy, resErr := db.Query(qyStr, userData.UserId)
+	row, rowErr := strconv.Atoi(c.Query("row", "10"))
+	if rowErr != nil {
+		row = 10
+	}
+	if row > 100 {
+		row = 100
+	}
+	page, pageErr := strconv.Atoi(c.Query("page", "1"))
+	if pageErr != nil {
+		page = 1
+	}
+
+	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE created_by = $1 LIMIT $2 OFFSET $3", tbname["news"])
+	resQy, resErr := db.Query(qyStr, userData.UserId, row, (page-1)*row)
 
 	if resErr != nil {
 		return resp.ServerError(c, resErr.Error())
@@ -50,7 +80,9 @@ func (n *NewsHandler) GetNewsAdmin(c *fiber.Ctx) error {
 
 }
 
+/////////////////////
 // fetch news by id
+/////////////////////
 func (n *NewsHandler) GetNewsById(c *fiber.Ctx) error {
 
 	// ReqHeader := c.GetReqHeaders()
@@ -69,8 +101,12 @@ func (n *NewsHandler) GetNewsById(c *fiber.Ctx) error {
 
 }
 
+/////////////////
 // add new news
+/////////////////
 func (n *NewsHandler) AddNews(c *fiber.Ctx) error {
+
+	// return c.Send(c.Body())
 
 	// check for permission
 	userData := c.Locals("user").(*helper.ClaimsData)
@@ -81,10 +117,14 @@ func (n *NewsHandler) AddNews(c *fiber.Ctx) error {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 
-	// fetch from form-data
+	// // fetch from form-data
 	if reqErr := c.BodyParser(model); reqErr != nil {
 		return resp.ServerError(c, reqErr.Error())
 	}
+
+	// return c.JSON(fiber.Map{
+	// 	"bool": model.Status,
+	// })
 
 	// file process
 	fileForm, _ := c.FormFile("image")
@@ -117,7 +157,9 @@ func (n *NewsHandler) AddNews(c *fiber.Ctx) error {
 	return resp.Created(c, "Success Adding Data")
 }
 
+////////////////////
 // edit news by id
+////////////////////
 func (n *NewsHandler) EditNews(c *fiber.Ctx) error {
 
 	// check for permission
@@ -152,20 +194,20 @@ func (n *NewsHandler) EditNews(c *fiber.Ctx) error {
 	}
 
 	// fill empty data process
-	if model.Title == nil {
-		model.Title = checkData[0].(map[string]interface{})["title"]
+	if model.Title == "" {
+		model.Title = checkData[0].(map[string]interface{})["title"].(string)
 	}
-	if model.Article == nil {
-		model.Article = checkData[0].(map[string]interface{})["article"]
+	if model.Article == "" {
+		model.Article = checkData[0].(map[string]interface{})["article"].(string)
 	}
 	if model.Image == nil {
 		model.Image = checkData[0].(map[string]interface{})["image"]
 	}
-	if model.Status == nil {
-		model.Status = checkData[0].(map[string]interface{})["status"]
+	if !model.Status {
+		model.Status = checkData[0].(map[string]interface{})["status"].(bool)
 	}
-	if model.Draft_status == nil {
-		model.Draft_status = checkData[0].(map[string]interface{})["draft_status"]
+	if !model.Draft_status {
+		model.Draft_status = checkData[0].(map[string]interface{})["draft_status"].(bool)
 	}
 
 	// delete data process
@@ -182,7 +224,9 @@ func (n *NewsHandler) EditNews(c *fiber.Ctx) error {
 	return resp.Success(c, nil, "Success Updating Data")
 }
 
+//////////////////////
 // delete news by id
+//////////////////////
 func (n *NewsHandler) DeleteNews(c *fiber.Ctx) error {
 
 	// check for permission
