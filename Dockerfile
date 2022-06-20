@@ -10,6 +10,6 @@ RUN go mod verify
 
 RUN go mod tidy
 
-RUN go build -o bin/server src/main.go
+RUN go build -o bin/server main.go
 
 CMD [ "./bin/server" ]
