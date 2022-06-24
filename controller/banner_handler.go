@@ -14,12 +14,14 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type BannerHandler struct{}
+type BannerHandler struct {
+	Tbname string
+}
 
 ////////////////////
 // fetch all banner
 ////////////////////
-func (n *BannerHandler) GetBanners(c *fiber.Ctx) error {
+func (bnh *BannerHandler) GetBanners(c *fiber.Ctx) error {
 
 	// ReqHeader := c.GetReqHeaders()
 	// AuthToken := strings.Split(ReqHeader["Authorization"], " ")[1]
@@ -36,7 +38,7 @@ func (n *BannerHandler) GetBanners(c *fiber.Ctx) error {
 		page = 1
 	}
 
-	qyStr := fmt.Sprintf("SELECT * FROM %s LIMIT $1 OFFSET $2", tbname["banner"])
+	qyStr := fmt.Sprintf("SELECT * FROM %s LIMIT $1 OFFSET $2", bnh.Tbname)
 	resQy, resErr := db.Query(qyStr, row, (page-1)*row)
 
 	if resErr != nil {
@@ -49,12 +51,12 @@ func (n *BannerHandler) GetBanners(c *fiber.Ctx) error {
 ///////////////////////
 // fetch banner by id
 ///////////////////////
-func (n *BannerHandler) GetBannerById(c *fiber.Ctx) error {
+func (bnh *BannerHandler) GetBannerById(c *fiber.Ctx) error {
 
 	// ReqHeader := c.GetReqHeaders()
 	// AuthToken := strings.Split(ReqHeader["Authorization"], " ")[1]
 
-	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE id = $1", tbname["banner"])
+	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE id = $1", bnh.Tbname)
 	resQy, resErr := db.Query(qyStr, c.Params("id"))
 	if resErr != nil {
 		return resp.ServerError(c, "Server Error")
@@ -70,7 +72,7 @@ func (n *BannerHandler) GetBannerById(c *fiber.Ctx) error {
 ///////////////////
 // add new banner
 //////////////////
-func (n *BannerHandler) AddBanner(c *fiber.Ctx) error {
+func (bnh *BannerHandler) AddBanner(c *fiber.Ctx) error {
 
 	userData := c.Locals("user").(*helper.ClaimsData)
 	// model := new(model.BannerModel)
@@ -106,7 +108,7 @@ func (n *BannerHandler) AddBanner(c *fiber.Ctx) error {
 	cmdMainStr := fmt.Sprintf(`
 	INSERT INTO %s(
 		id, title, detail, image, status, created_at, created_by, updated_at, updated_by)
-	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)`, tbname["banner"])
+	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)`, bnh.Tbname)
 	resMainErr := db.Command(
 		cmdMainStr, uuid, model.Title, model.Detail, model.Image, model.Status,
 		time.Now(), userData.UserId, time.Now(), userData.UserId,
@@ -121,7 +123,7 @@ func (n *BannerHandler) AddBanner(c *fiber.Ctx) error {
 /////////////////////
 // edit banner by id
 /////////////////////
-func (n *BannerHandler) EditBanner(c *fiber.Ctx) error {
+func (bnh *BannerHandler) EditBanner(c *fiber.Ctx) error {
 
 	model := new(model.BannerModel)
 	userData := c.Locals("user").(*helper.ClaimsData)
@@ -136,7 +138,7 @@ func (n *BannerHandler) EditBanner(c *fiber.Ctx) error {
 	}
 
 	// check file availability
-	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE id = $1", tbname["banner"])
+	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE id = $1", bnh.Tbname)
 	checkData, checkErr := db.Query(qyStr, c.Params("id"))
 	if checkErr != nil {
 		return resp.ServerError(c, checkErr.Error())
@@ -168,7 +170,7 @@ func (n *BannerHandler) EditBanner(c *fiber.Ctx) error {
 	}
 
 	// update data process
-	cmdStr := fmt.Sprintf("UPDATE %s SET title=$1, detail=$2, image=$3, status=$4, updated_by=$5, updated_at=$6 WHERE id = $7", tbname["banner"])
+	cmdStr := fmt.Sprintf("UPDATE %s SET title=$1, detail=$2, image=$3, status=$4, updated_by=$5, updated_at=$6 WHERE id = $7", bnh.Tbname)
 
 	cmdErr := db.Command(cmdStr, model.Title, model.Detail, model.Image, model.Status, userData.UserId, time.Now(), c.Params("id"))
 	if cmdErr != nil {
@@ -181,7 +183,7 @@ func (n *BannerHandler) EditBanner(c *fiber.Ctx) error {
 ///////////////////////
 // delete banner by id
 ///////////////////////
-func (n *BannerHandler) DeleteBanner(c *fiber.Ctx) error {
+func (bnh *BannerHandler) DeleteBanner(c *fiber.Ctx) error {
 
 	userData := c.Locals("user").(*helper.ClaimsData)
 
@@ -191,7 +193,7 @@ func (n *BannerHandler) DeleteBanner(c *fiber.Ctx) error {
 	}
 
 	// check file availability
-	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE id = '%s'", tbname["banner"], c.Params("id"))
+	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE id = '%s'", bnh.Tbname, c.Params("id"))
 	checkData, checkErr := db.Query(qyStr)
 	if checkErr != nil {
 		return resp.ServerError(c, checkErr.Error())
@@ -207,7 +209,7 @@ func (n *BannerHandler) DeleteBanner(c *fiber.Ctx) error {
 	os.Remove(fmt.Sprintf("./public/banner/%s", fileName[4]))
 
 	// db process
-	cmdStr := fmt.Sprintf("DELETE FROM %s WHERE id = '%s'", tbname["banner"], c.Params("id"))
+	cmdStr := fmt.Sprintf("DELETE FROM %s WHERE id = '%s'", bnh.Tbname, c.Params("id"))
 	resErr := db.Command(cmdStr)
 	if resErr != nil {
 		return resp.ServerError(c, resErr.Error())
