@@ -10,19 +10,21 @@ import (
 	"github.com/google/uuid"
 )
 
-type ReviewHandler struct{}
+type ReviewHandler struct {
+	Tbname string
+}
 
 //////////////////////
 // fetch all comment
 //////////////////////
-func (pinf *ReviewHandler) GetComment(c *fiber.Ctx) error {
+func (rh *ReviewHandler) GetComment(c *fiber.Ctx) error {
 
 	placeId := c.Query("placeid")
 	if placeId == "" {
 		return resp.BadRequest(c, "Need more query (placeid is needed)")
 	}
 
-	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE place_id = $1", tbname["placeinfo"])
+	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE place_id = $1 ORDER BY updated_at DESC", rh.Tbname)
 	resQy, resErr := db.Query(qyStr, placeId)
 
 	if resErr != nil {
@@ -36,7 +38,7 @@ func (pinf *ReviewHandler) GetComment(c *fiber.Ctx) error {
 ////////////////////
 // add new comment
 ////////////////////
-func (pinf *ReviewHandler) AddComment(c *fiber.Ctx) error {
+func (rh *ReviewHandler) AddComment(c *fiber.Ctx) error {
 
 	userData := c.Locals("user").(*helper.ClaimsData)
 	model := new(model.CommentModel)
@@ -53,7 +55,7 @@ func (pinf *ReviewHandler) AddComment(c *fiber.Ctx) error {
 
 	// db process
 	cmdMainStr := fmt.Sprintf(`
-	INSERT INTO %s(id, place_id, comment, created_at, created_by, updated_at, updated_by) VALUES($1, $2, $3, $4, $5, $6)`, tbname["review"])
+	INSERT INTO %s(id, place_id, comment, created_at, created_by, updated_at, updated_by) VALUES($1, $2, $3, $4, $5, $6, $7)`, rh.Tbname)
 	resMainErr := db.Command(
 		cmdMainStr, uuid, model.Place_Id, model.Comment, time.Now(), userData.UserId, time.Now(), userData.UserId,
 	)
@@ -67,7 +69,7 @@ func (pinf *ReviewHandler) AddComment(c *fiber.Ctx) error {
 ///////////////////
 // delete comment
 ///////////////////
-func (pinf *ReviewHandler) DeleteCommentAdmin(c *fiber.Ctx) error {
+func (rh *ReviewHandler) DeleteCommentAdmin(c *fiber.Ctx) error {
 
 	userData := c.Locals("user").(*helper.ClaimsData)
 
@@ -77,7 +79,7 @@ func (pinf *ReviewHandler) DeleteCommentAdmin(c *fiber.Ctx) error {
 	}
 
 	// check data availability
-	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE id = $1", tbname["review"])
+	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE id = $1", rh.Tbname)
 	checkData, checkErr := db.Query(qyStr, c.Params("id"))
 	if checkErr != nil {
 		return resp.ServerError(c, checkErr.Error())
@@ -92,7 +94,7 @@ func (pinf *ReviewHandler) DeleteCommentAdmin(c *fiber.Ctx) error {
 	}
 
 	// delete process
-	cmdStr := fmt.Sprintf("DELETE FROM %s WHERE id = $1", tbname["news"])
+	cmdStr := fmt.Sprintf("DELETE FROM %s WHERE id = $1", rh.Tbname)
 	resErr := db.Command(cmdStr, c.Params("id"))
 	if resErr != nil {
 		return resp.ServerError(c, resErr.Error())

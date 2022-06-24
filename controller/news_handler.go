@@ -14,7 +14,9 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type NewsHandler struct{}
+type NewsHandler struct {
+	Tbname string
+}
 
 ///////////////////
 // fetch all news
@@ -36,7 +38,7 @@ func (n *NewsHandler) GetNews(c *fiber.Ctx) error {
 		page = 1
 	}
 
-	qyStr := fmt.Sprintf("SELECT * FROM %s LIMIT $1 OFFSET $2", tbname["news"])
+	qyStr := fmt.Sprintf("SELECT * FROM %s ORDER BY updated_at DESC LIMIT $1 OFFSET $2", n.Tbname)
 	resQy, resErr := db.Query(qyStr, row, (page-1)*row)
 
 	if resErr != nil {
@@ -69,7 +71,7 @@ func (n *NewsHandler) GetNewsAdmin(c *fiber.Ctx) error {
 		page = 1
 	}
 
-	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE created_by = $1 LIMIT $2 OFFSET $3", tbname["news"])
+	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE created_by = $1 ORDER BY updated_at DESC LIMIT $2 OFFSET $3", n.Tbname)
 	resQy, resErr := db.Query(qyStr, userData.UserId, row, (page-1)*row)
 
 	if resErr != nil {
@@ -88,7 +90,7 @@ func (n *NewsHandler) GetNewsById(c *fiber.Ctx) error {
 	// ReqHeader := c.GetReqHeaders()
 	// AuthToken := strings.Split(ReqHeader["Authorization"], " ")[1]
 
-	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE id = $1", tbname["news"])
+	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE id = $1", n.Tbname)
 	resQy, resErr := db.Query(qyStr, c.Params("id"))
 	if resErr != nil {
 		return resp.ServerError(c, "Server Error")
@@ -122,9 +124,17 @@ func (n *NewsHandler) AddNews(c *fiber.Ctx) error {
 		return resp.ServerError(c, reqErr.Error())
 	}
 
-	// return c.JSON(fiber.Map{
-	// 	"bool": model.Status,
-	// })
+	// check for place id
+	qyStr := fmt.Sprintf("SELECT id FROM %s WHERE created_by = $1", n.Tbname)
+	checkData, checkErr := db.Query(qyStr, userData.UserId)
+	if checkErr != nil {
+		return resp.ServerError(c, checkErr.Error())
+	}
+	if checkData[0] == nil {
+		return resp.NotFound(c, "Data Not Found")
+	}
+
+	model.Place_id = checkData[0].(map[string]interface{})["id"].(string)
 
 	// file process
 	fileForm, _ := c.FormFile("image")
@@ -143,12 +153,12 @@ func (n *NewsHandler) AddNews(c *fiber.Ctx) error {
 	// db process
 	cmdMainStr := fmt.Sprintf(`
 	INSERT INTO %s(
-		id, title, article, image, status, draft_status,
+		id, place_id, title, article, image, status, draft_status,
 		created_at, created_by, updated_at, updated_by)
-	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`, tbname["news"])
+	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`, n.Tbname)
 	resMainErr := db.Command(
-		cmdMainStr, uuid, model.Title, model.Article, model.Image, model.Status,
-		model.Draft_status, time.Now(), userData.UserId, time.Now(), userData.UserId,
+		cmdMainStr, uuid, model.Place_id, model.Title, model.Article, model.Image,
+		model.Status, model.Draft_status, time.Now(), userData.UserId, time.Now(), userData.UserId,
 	)
 	if resMainErr != nil {
 		return resp.ServerError(c, "Error Adding Data: "+resMainErr.Error())
@@ -176,7 +186,7 @@ func (n *NewsHandler) EditNews(c *fiber.Ctx) error {
 	}
 
 	// check for data availability
-	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE id = $1", tbname["news"])
+	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE id = $1", n.Tbname)
 	checkData, checkErr := db.Query(qyStr, c.Params("id"))
 	if checkErr != nil {
 		return resp.ServerError(c, checkErr.Error())
@@ -212,8 +222,7 @@ func (n *NewsHandler) EditNews(c *fiber.Ctx) error {
 
 	// delete data process
 	cmdStr := fmt.Sprintf(
-		"UPDATE %s SET title=$1, article=$2, image=$3, status=$4, draft_status=$5, updated_by=$6, updated_at=$7 WHERE id = $8",
-		tbname["news"])
+		"UPDATE %s SET title=$1, article=$2, image=$3, status=$4, draft_status=$5, updated_by=$6, updated_at=$7 WHERE id = $8", n.Tbname)
 
 	cmdErr := db.Command(cmdStr, model.Title, model.Article, model.Image, model.Status,
 		model.Draft_status, userData.UserId, time.Now(), c.Params("id"))
@@ -237,7 +246,7 @@ func (n *NewsHandler) DeleteNews(c *fiber.Ctx) error {
 	}
 
 	// check for file availability
-	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE id = '%s'", tbname["news"], c.Params("id"))
+	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE id = '%s'", n.Tbname, c.Params("id"))
 	checkData, checkErr := db.Query(qyStr)
 	if checkErr != nil {
 		return resp.ServerError(c, checkErr.Error())
@@ -253,7 +262,7 @@ func (n *NewsHandler) DeleteNews(c *fiber.Ctx) error {
 	os.Remove(fmt.Sprintf("./public/news/%s", fileName[4]))
 
 	// delete data process
-	cmdStr := fmt.Sprintf("DELETE FROM %s WHERE id = '%s'", tbname["news"], c.Params("id"))
+	cmdStr := fmt.Sprintf("DELETE FROM %s WHERE id = '%s'", n.Tbname, c.Params("id"))
 	resErr := db.Command(cmdStr)
 	if resErr != nil {
 		return resp.ServerError(c, resErr.Error())

@@ -11,19 +11,20 @@ import (
 )
 
 type TicketHandler struct {
+	Tbname string
 }
 
 /////////////////////
 // fetch all ticket
 /////////////////////
-func (pinf *TicketHandler) GetTicket(c *fiber.Ctx) error {
+func (th *TicketHandler) GetTicketTourist(c *fiber.Ctx) error {
 
 	placeId := c.Query("placeid")
 	if placeId == "" {
 		return resp.BadRequest(c, "Need more query (placeid is needed)")
 	}
 
-	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE place_id = $1", tbname["ticket"])
+	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE place_id = $1", th.Tbname)
 	resQy, resErr := db.Query(qyStr, placeId)
 
 	if resErr != nil {
@@ -37,9 +38,9 @@ func (pinf *TicketHandler) GetTicket(c *fiber.Ctx) error {
 /////////////////////
 // fetch all ticket
 /////////////////////
-func (pinf *TicketHandler) GetTicketById(c *fiber.Ctx) error {
+func (th *TicketHandler) GetTicketById(c *fiber.Ctx) error {
 
-	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE id = $1", tbname["ticket"])
+	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE id = $1", th.Tbname)
 	resQy, resErr := db.Query(qyStr, c.Query("id"))
 
 	if resErr != nil {
@@ -53,7 +54,7 @@ func (pinf *TicketHandler) GetTicketById(c *fiber.Ctx) error {
 ///////////////////////////////
 // fetch all ticket for admin
 ///////////////////////////////
-func (pinf *TicketHandler) GetTicketAdmin(c *fiber.Ctx) error {
+func (th *TicketHandler) GetTicketAdmin(c *fiber.Ctx) error {
 
 	userData := c.Locals("user").(*helper.ClaimsData)
 
@@ -62,7 +63,7 @@ func (pinf *TicketHandler) GetTicketAdmin(c *fiber.Ctx) error {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 
-	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE created_by = $1", tbname["ticket"])
+	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE created_by = $1", th.Tbname)
 	resQy, resErr := db.Query(qyStr, userData.UserId)
 
 	if resErr != nil {
@@ -76,7 +77,7 @@ func (pinf *TicketHandler) GetTicketAdmin(c *fiber.Ctx) error {
 ///////////////////
 // add new ticket
 ///////////////////
-func (pinf *TicketHandler) AddTicket(c *fiber.Ctx) error {
+func (th *TicketHandler) AddTicket(c *fiber.Ctx) error {
 
 	userData := c.Locals("user").(*helper.ClaimsData)
 	model := new(model.TicketModel)
@@ -92,11 +93,23 @@ func (pinf *TicketHandler) AddTicket(c *fiber.Ctx) error {
 		return resp.ServerError(c, reqErr.Error())
 	}
 
+	// check for place id
+	qyStr := fmt.Sprintf("SELECT id FROM %s WHERE created_by = $1", th.Tbname)
+	checkData, checkErr := db.Query(qyStr, userData.UserId)
+	if checkErr != nil {
+		return resp.ServerError(c, checkErr.Error())
+	}
+	if checkData[0] == nil {
+		return resp.NotFound(c, "Data Not Found")
+	}
+
+	model.Ticket_placeid = checkData[0].(map[string]interface{})["id"].(string)
+
 	// db process
 	cmdMainStr := fmt.Sprintf(`
 	INSERT INTO %s(
 		id, name, details, price, place_id, created_at, created_by, updated_at, updated_by)
-	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)`, tbname["ticket"])
+	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)`, th.Tbname)
 	resMainErr := db.Command(
 		cmdMainStr, uuid, model.Ticket_name, model.Ticket_details, model.Ticket_price, model.Ticket_placeid,
 		time.Now(), userData.UserId, time.Now(), userData.UserId,
@@ -112,7 +125,7 @@ func (pinf *TicketHandler) AddTicket(c *fiber.Ctx) error {
 ////////////////////
 // edit ticket by id
 ////////////////////
-func (n *TicketHandler) EditTicket(c *fiber.Ctx) error {
+func (th *TicketHandler) EditTicket(c *fiber.Ctx) error {
 
 	// check for permission
 	model := new(model.TicketModel)
@@ -128,7 +141,7 @@ func (n *TicketHandler) EditTicket(c *fiber.Ctx) error {
 	}
 
 	// check for data availability
-	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE id = $1", tbname["news"])
+	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE id = $1", th.Tbname)
 	checkData, checkErr := db.Query(qyStr, c.Params("id"))
 	if checkErr != nil {
 		return resp.ServerError(c, checkErr.Error())
@@ -154,7 +167,7 @@ func (n *TicketHandler) EditTicket(c *fiber.Ctx) error {
 	// delete data process
 	cmdStr := fmt.Sprintf(
 		"UPDATE %s SET name=$1, details=$2, place_id=$3, price=$4, updated_by=$5, updated_at=$6 WHERE id = $7",
-		tbname["ticket"])
+		th.Tbname)
 
 	cmdErr := db.Command(cmdStr, model.Ticket_name, model.Ticket_details, model.Ticket_placeid,
 		model.Ticket_price, userData.UserId, time.Now(), c.Params("id"))
@@ -168,7 +181,7 @@ func (n *TicketHandler) EditTicket(c *fiber.Ctx) error {
 //////////////////////
 // delete ticket by id
 //////////////////////
-func (n *TicketHandler) DeleteTicket(c *fiber.Ctx) error {
+func (th *TicketHandler) DeleteTicket(c *fiber.Ctx) error {
 
 	// check for permission
 	userData := c.Locals("user").(*helper.ClaimsData)
@@ -178,7 +191,7 @@ func (n *TicketHandler) DeleteTicket(c *fiber.Ctx) error {
 	}
 
 	// check for file availability
-	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE id = '%s'", tbname["ticket"], c.Params("id"))
+	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE id = '%s'", th.Tbname, c.Params("id"))
 	checkData, checkErr := db.Query(qyStr)
 	if checkErr != nil {
 		return resp.ServerError(c, checkErr.Error())
@@ -188,7 +201,7 @@ func (n *TicketHandler) DeleteTicket(c *fiber.Ctx) error {
 	}
 
 	// delete data process
-	cmdStr := fmt.Sprintf("DELETE FROM %s WHERE id = '%s'", tbname["news"], c.Params("id"))
+	cmdStr := fmt.Sprintf("DELETE FROM %s WHERE id = '%s'", th.Tbname, c.Params("id"))
 	resErr := db.Command(cmdStr)
 	if resErr != nil {
 		return resp.ServerError(c, resErr.Error())
