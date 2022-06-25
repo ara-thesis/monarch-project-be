@@ -70,7 +70,7 @@ func (pinf *PlaceInfoHandler) GetPlaceInfoAdmin(c *fiber.Ctx) error {
 
 	userData := c.Locals("user").(*helper.ClaimsData)
 
-	if userData.UserRole != "PLACE MANAGER" {
+	if userData.UserRole != roleId.pm {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 
@@ -95,7 +95,7 @@ func (pinf *PlaceInfoHandler) AddAndEditPlaceInfoAdmin(c *fiber.Ctx) error {
 	model := new(model.PlaceInfoModel)
 	uuid := uuid.New()
 
-	if userData.UserRole != "PLACE MANAGER" {
+	if userData.UserRole != roleId.pm {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 
@@ -188,7 +188,7 @@ func (pinf *PlaceInfoHandler) DeletePlaceInfoAdmin(c *fiber.Ctx) error {
 
 	userData := c.Locals("user").(*helper.ClaimsData)
 
-	if userData.UserRole != "PLACE MANAGER" {
+	if userData.UserRole != roleId.pm {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 

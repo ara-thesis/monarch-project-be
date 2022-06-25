@@ -56,7 +56,7 @@ func (n *NewsHandler) GetNewsAdmin(c *fiber.Ctx) error {
 
 	userData := c.Locals("user").(*helper.ClaimsData)
 
-	if userData.UserRole != "PLACE MANAGER" {
+	if userData.UserRole != roleId.pm {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 
@@ -116,7 +116,7 @@ func (n *NewsHandler) AddNews(c *fiber.Ctx) error {
 	model := new(model.NewsModel)
 	uuid := uuid.New()
 
-	if userData.UserRole != "PLACE MANAGER" {
+	if userData.UserRole != roleId.pm {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 
@@ -177,7 +177,7 @@ func (n *NewsHandler) EditNews(c *fiber.Ctx) error {
 	model := new(model.NewsModel)
 	userData := c.Locals("user").(*helper.ClaimsData)
 
-	if userData.UserRole != "PLACE MANAGER" {
+	if userData.UserRole != roleId.pm {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 
@@ -242,7 +242,7 @@ func (n *NewsHandler) DeleteNews(c *fiber.Ctx) error {
 	// check for permission
 	userData := c.Locals("user").(*helper.ClaimsData)
 
-	if userData.UserRole != "PLACE MANAGER" {
+	if userData.UserRole != roleId.pm {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 

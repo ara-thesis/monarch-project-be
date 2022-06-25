@@ -99,6 +99,7 @@ func pathapi(app *fiber.App) {
 	app.Post("/api/payment/cart/buy", JwtHelper.VerifyToken, PaymentHandler.PayCart)
 
 	app.Get("/api/itinerary", JwtHelper.VerifyToken, ItineraryHandler.GetItinerary)
+	app.Get("/api/itinerary/public/search", JwtHelper.VerifyToken, ItineraryHandler.GetItineraryPublic)
 	app.Get("/api/itinerary/:id", JwtHelper.VerifyToken, ItineraryHandler.GetItineraryById)
 	app.Post("/api/itinerary", JwtHelper.VerifyToken, ItineraryHandler.CreateItinerary)
 	app.Put("/api/itinerary/:id", JwtHelper.VerifyToken, ItineraryHandler.UpdateItinerary)

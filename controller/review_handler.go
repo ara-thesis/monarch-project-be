@@ -45,7 +45,7 @@ func (rh *ReviewHandler) AddComment(c *fiber.Ctx) error {
 	uuid := uuid.New()
 
 	// permission check
-	if userData.UserRole != roleId["T"] {
+	if userData.UserRole != roleId.t {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 
@@ -74,7 +74,7 @@ func (rh *ReviewHandler) DeleteCommentAdmin(c *fiber.Ctx) error {
 	userData := c.Locals("user").(*helper.ClaimsData)
 
 	// permission check
-	if userData.UserRole != "PLACE MANAGER" {
+	if userData.UserRole != roleId.adm {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 
