@@ -80,7 +80,7 @@ func (bnh *BannerHandler) AddBanner(c *fiber.Ctx) error {
 	uuid := uuid.New()
 
 	// permission check
-	if userData.UserRole != roleId["ADM"] {
+	if userData.UserRole != roleId.adm {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 
@@ -129,7 +129,7 @@ func (bnh *BannerHandler) EditBanner(c *fiber.Ctx) error {
 	userData := c.Locals("user").(*helper.ClaimsData)
 
 	// permission check
-	if userData.UserRole != "ADMIN" {
+	if userData.UserRole != roleId.adm {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 
@@ -188,7 +188,7 @@ func (bnh *BannerHandler) DeleteBanner(c *fiber.Ctx) error {
 	userData := c.Locals("user").(*helper.ClaimsData)
 
 	// permission check
-	if userData.UserRole != "ADMIN" {
+	if userData.UserRole != roleId.adm {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 
