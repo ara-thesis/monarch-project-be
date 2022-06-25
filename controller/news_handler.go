@@ -15,7 +15,8 @@ import (
 )
 
 type NewsHandler struct {
-	Tbname string
+	Tbname           string
+	Tbname_placeinfo string
 }
 
 ///////////////////
@@ -38,8 +39,8 @@ func (n *NewsHandler) GetNews(c *fiber.Ctx) error {
 		page = 1
 	}
 
-	qyStr := fmt.Sprintf("SELECT * FROM %s ORDER BY updated_at DESC LIMIT $1 OFFSET $2", n.Tbname)
-	resQy, resErr := db.Query(qyStr, row, (page-1)*row)
+	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE status = $1 ORDER BY updated_at DESC LIMIT $2 OFFSET $3", n.Tbname)
+	resQy, resErr := db.Query(qyStr, true, row, (page-1)*row)
 
 	if resErr != nil {
 		return resp.ServerError(c, resErr.Error())
@@ -125,7 +126,7 @@ func (n *NewsHandler) AddNews(c *fiber.Ctx) error {
 	}
 
 	// check for place id
-	qyStr := fmt.Sprintf("SELECT id FROM %s WHERE created_by = $1", n.Tbname)
+	qyStr := fmt.Sprintf("SELECT id FROM %s WHERE created_by = $1", n.Tbname_placeinfo)
 	checkData, checkErr := db.Query(qyStr, userData.UserId)
 	if checkErr != nil {
 		return resp.ServerError(c, checkErr.Error())

@@ -24,7 +24,10 @@ func pathstatic(app *fiber.App) {
 func pathapi(app *fiber.App) {
 	JwtHelper := new(helper.JwtHelper)
 	AccountHandler := &controller.AccountHandler{Tbname: "userinfo"}
-	NewsHandler := &controller.NewsHandler{Tbname: "newstb"}
+	NewsHandler := &controller.NewsHandler{
+		Tbname:           "newstb",
+		Tbname_placeinfo: "placeinfotb",
+	}
 	PlaceInfoHandler := &controller.PlaceInfoHandler{Tbname: "placeinfotb"}
 	BannerHandler := &controller.BannerHandler{Tbname: "bannertb"}
 	ReviewHandler := &controller.ReviewHandler{Tbname: "reviewtb"}
