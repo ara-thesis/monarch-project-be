@@ -28,7 +28,10 @@ func pathapi(app *fiber.App) {
 		Tbname:           "newstb",
 		Tbname_placeinfo: "placeinfotb",
 	}
-	PlaceInfoHandler := &controller.PlaceInfoHandler{Tbname: "placeinfotb"}
+	PlaceInfoHandler := &controller.PlaceInfoHandler{
+		Tbname:     "placeinfotb",
+		Tbname_img: "placeinfo_imgtb",
+	}
 	BannerHandler := &controller.BannerHandler{Tbname: "bannertb"}
 	ReviewHandler := &controller.ReviewHandler{Tbname: "reviewtb"}
 	TicketHandler := &controller.TicketHandler{Tbname: "tickettb"}
@@ -41,8 +44,9 @@ func pathapi(app *fiber.App) {
 		Tbname_cart: "ticketcarttb",
 	}
 	ItineraryHandler := &controller.ItineraryHandler{
-		Tbname:      "itinerarytb",
-		Tbname_item: "itineraryitemtb",
+		Tbname:           "itinerarytb",
+		Tbname_item:      "itineraryitemtb",
+		Tbname_placeinfo: "placeinfotb",
 	}
 
 	app.Get("/api/auth/me", JwtHelper.VerifyToken, AccountHandler.GetUserInfo)
@@ -58,7 +62,6 @@ func pathapi(app *fiber.App) {
 	app.Delete("/api/auth/:id", JwtHelper.VerifyToken, AccountHandler.DeleteUser)
 
 	app.Get("/api/news", NewsHandler.GetNews)
-	app.Get("/api/news/search", NewsHandler.GetNews)
 	app.Get("/api/news/:id", NewsHandler.GetNewsById)
 	app.Get("/api/news/list/admin", JwtHelper.VerifyToken, NewsHandler.GetNewsAdmin)
 	app.Post("/api/news", JwtHelper.VerifyToken, NewsHandler.AddNews)
@@ -68,7 +71,7 @@ func pathapi(app *fiber.App) {
 	app.Get("/api/placeinfo", PlaceInfoHandler.GetPlaceInfo)
 	app.Get("/api/placeinfo/:id", PlaceInfoHandler.GetPlaceInfoById)
 	app.Get("/api/placeinfo/show/admin", JwtHelper.VerifyToken, PlaceInfoHandler.GetPlaceInfoAdmin)
-	app.Put("/api/placeinfo", JwtHelper.VerifyToken, PlaceInfoHandler.AddAndEditPlaceInfoAdmin)
+	app.Put("/api/placeinfo", JwtHelper.VerifyToken, PlaceInfoHandler.UpdatePlaceInfoAdmin)
 	app.Delete("/api/placeinfo/:userId", JwtHelper.VerifyToken, PlaceInfoHandler.DeletePlaceInfoAdmin)
 
 	app.Get("/api/banner", BannerHandler.GetBanners)
