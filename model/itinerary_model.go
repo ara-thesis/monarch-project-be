@@ -1,6 +1,8 @@
 package model
 
-import "time"
+import (
+	"github.com/google/uuid"
+)
 
 type ItineraryModel struct {
 	Title  string        `json:"title" xml:"title" form:"title"`
@@ -8,9 +10,15 @@ type ItineraryModel struct {
 	Items  []interface{} `json:"items" xml:"items" form:"items"`
 }
 
+type ItineraryDayModel struct {
+	Went_time string
+	Place_loc []interface{}
+}
+
 type ItineraryItemModel struct {
-	ItineraryId string
+	ItineraryId uuid.UUID
 	PlaceId     string
 	Detail      string
-	Went_time   time.Time
+	In_time     string
+	Out_time    string
 }
