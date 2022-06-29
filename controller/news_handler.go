@@ -39,11 +39,24 @@ func (n *NewsHandler) GetNews(c *fiber.Ctx) error {
 		page = 1
 	}
 
-	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE status = $1 ORDER BY updated_at DESC LIMIT $2 OFFSET $3", n.Tbname)
-	resQy, resErr := db.Query(qyStr, true, row, (page-1)*row)
+	placeIDCheckStr := ""
+
+	if c.Query("place_id") != "" {
+		placeIDCheckStr = fmt.Sprintf(" place_id = '%s' AND ", c.Query("place_id"))
+	}
+
+	qyStr := fmt.Sprintf(`
+	SELECT id, title, image FROM %s
+	WHERE POSITION(upper($1) IN upper(title))>0 AND %s status = $2
+	ORDER BY updated_at DESC LIMIT $3 OFFSET $4`, n.Tbname, placeIDCheckStr)
+	resQy, resErr := db.Query(qyStr, c.Query("search"), true, row, (page-1)*row)
 
 	if resErr != nil {
 		return resp.ServerError(c, resErr.Error())
+	}
+
+	if resQy[0] == nil {
+		return resp.NotFound(c, "News not found")
 	}
 
 	return resp.Success(c, resQy, "Success Fetching Data")
@@ -72,8 +85,12 @@ func (n *NewsHandler) GetNewsAdmin(c *fiber.Ctx) error {
 		page = 1
 	}
 
-	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE created_by = $1 ORDER BY updated_at DESC LIMIT $2 OFFSET $3", n.Tbname)
-	resQy, resErr := db.Query(qyStr, userData.UserId, row, (page-1)*row)
+	qyStr := fmt.Sprintf(`
+	SELECT id, title, image FROM %s
+	WHERE POSITION(upper($1) IN upper(title))>0 AND created_by = $2
+	ORDER BY updated_at DESC LIMIT $3 OFFSET $4
+	`, n.Tbname)
+	resQy, resErr := db.Query(qyStr, c.Query("search"), userData.UserId, row, (page-1)*row)
 
 	if resErr != nil {
 		return resp.ServerError(c, resErr.Error())

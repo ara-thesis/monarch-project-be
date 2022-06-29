@@ -12,7 +12,8 @@ import (
 )
 
 type PlaceInfoHandler struct {
-	Tbname string
+	Tbname     string
+	Tbname_img string
 }
 
 /////////////////////////
@@ -89,7 +90,7 @@ func (pinf *PlaceInfoHandler) GetPlaceInfoAdmin(c *fiber.Ctx) error {
 //////////////////////////////
 // add and update place info
 //////////////////////////////
-func (pinf *PlaceInfoHandler) AddAndEditPlaceInfoAdmin(c *fiber.Ctx) error {
+func (pinf *PlaceInfoHandler) UpdatePlaceInfoAdmin(c *fiber.Ctx) error {
 
 	userData := c.Locals("user").(*helper.ClaimsData)
 	model := new(model.PlaceInfoModel)
