@@ -23,7 +23,9 @@ func pathstatic(app *fiber.App) {
 
 func pathapi(app *fiber.App) {
 	JwtHelper := new(helper.JwtHelper)
-	AccountHandler := &controller.AccountHandler{Tbname: "userinfo"}
+	AccountHandler := &controller.AccountHandler{
+		Tbname: "userinfo",
+	}
 	NewsHandler := &controller.NewsHandler{
 		Tbname:           "newstb",
 		Tbname_placeinfo: "placeinfotb",
@@ -32,16 +34,26 @@ func pathapi(app *fiber.App) {
 		Tbname:     "placeinfotb",
 		Tbname_img: "placeinfo_imgtb",
 	}
-	BannerHandler := &controller.BannerHandler{Tbname: "bannertb"}
-	ReviewHandler := &controller.ReviewHandler{Tbname: "reviewtb"}
-	TicketHandler := &controller.TicketHandler{Tbname: "tickettb"}
+	BannerHandler := &controller.BannerHandler{
+		Tbname: "bannertb",
+	}
+	ReviewHandler := &controller.ReviewHandler{
+		Tbname: "reviewtb",
+		// Tbname_rating: ,
+	}
+	TicketHandler := &controller.TicketHandler{
+		Tbname:        "tickettb",
+		Tbname_place:  "placeinfotb",
+		Tbname_bought: "ticketboughttb",
+	}
 	CartHandler := &controller.CartHandler{
 		Tbname:        "ticketcarttb",
 		Tbname_ticket: "tickettb",
 	}
 	PaymentHandler := &controller.PaymentController{
-		Tbname:      "paymenttb",
-		Tbname_cart: "ticketcarttb",
+		Tbname:              "paymenttb",
+		Tbname_cart:         "ticketcarttb",
+		Tbname_ticketbought: "ticketboughttb",
 	}
 	ItineraryHandler := &controller.ItineraryHandler{
 		Tbname:           "itinerarytb",
@@ -49,6 +61,7 @@ func pathapi(app *fiber.App) {
 		Tbname_placeinfo: "placeinfotb",
 	}
 
+	// authorization handler
 	app.Get("/api/auth/me", JwtHelper.VerifyToken, AccountHandler.GetUserInfo)
 	app.Get("/api/auth/list/placemanager", JwtHelper.VerifyToken, AccountHandler.GetUserListPM)
 	app.Get("/api/auth/list/tourist", JwtHelper.VerifyToken, AccountHandler.GetUserListTourist)
@@ -61,6 +74,7 @@ func pathapi(app *fiber.App) {
 	app.Put("/api/auth/:id", JwtHelper.VerifyToken, AccountHandler.EditUserAsAdmin)
 	app.Delete("/api/auth/:id", JwtHelper.VerifyToken, AccountHandler.DeleteUser)
 
+	// news handler
 	app.Get("/api/news", NewsHandler.GetNews)
 	app.Get("/api/news/:id", NewsHandler.GetNewsById)
 	app.Get("/api/news/list/admin", JwtHelper.VerifyToken, NewsHandler.GetNewsAdmin)
@@ -68,39 +82,48 @@ func pathapi(app *fiber.App) {
 	app.Put("/api/news/:id", JwtHelper.VerifyToken, NewsHandler.EditNews)
 	app.Delete("/api/news/:id", JwtHelper.VerifyToken, NewsHandler.DeleteNews)
 
+	// place info handler
 	app.Get("/api/placeinfo", PlaceInfoHandler.GetPlaceInfo)
 	app.Get("/api/placeinfo/:id", PlaceInfoHandler.GetPlaceInfoById)
 	app.Get("/api/placeinfo/show/admin", JwtHelper.VerifyToken, PlaceInfoHandler.GetPlaceInfoAdmin)
 	app.Put("/api/placeinfo", JwtHelper.VerifyToken, PlaceInfoHandler.UpdatePlaceInfoAdmin)
 	app.Delete("/api/placeinfo/:userId", JwtHelper.VerifyToken, PlaceInfoHandler.DeletePlaceInfoAdmin)
 
+	// banner handler
 	app.Get("/api/banner", BannerHandler.GetBanners)
 	app.Get("/api/banner/:id", BannerHandler.GetBannerById)
 	app.Post("/api/banner", JwtHelper.VerifyToken, BannerHandler.AddBanner)
 	app.Put("/api/banner/:id", JwtHelper.VerifyToken, BannerHandler.EditBanner)
 	app.Delete("/api/banner/:id", JwtHelper.VerifyToken, BannerHandler.DeleteBanner)
 
+	// ticket handler
 	app.Get("/api/ticket", TicketHandler.GetTicketTourist)
 	app.Get("/api/ticket/:id", TicketHandler.GetTicketById)
+	app.Get("/api/ticket/list/tourist", JwtHelper.VerifyToken, TicketHandler.GetTicketBoughtTourist)
 	app.Get("/api/ticket/list/admin", JwtHelper.VerifyToken, TicketHandler.GetTicketAdmin)
 	app.Post("/api/ticket", JwtHelper.VerifyToken, TicketHandler.AddTicket)
 	app.Put("/api/ticket/:id", JwtHelper.VerifyToken, TicketHandler.EditTicket)
+	app.Put("/api/ticket/redeem/tourist", JwtHelper.VerifyToken, TicketHandler.RedeemTicket)
 	app.Delete("/api/ticket/:id", JwtHelper.VerifyToken, TicketHandler.DeleteTicket)
 
+	// review handler
 	app.Get("/api/review", ReviewHandler.GetComment)
 	app.Post("/api/review", JwtHelper.VerifyToken, ReviewHandler.AddComment)
 	app.Delete("/api/review/:id", JwtHelper.VerifyToken, ReviewHandler.DeleteCommentAdmin)
 
+	// cart handler
 	app.Get("/api/cart", JwtHelper.VerifyToken, CartHandler.GetCart)
 	app.Post("/api/cart", JwtHelper.VerifyToken, CartHandler.AddToCart)
 	app.Delete("/api/cart/:id", JwtHelper.VerifyToken, CartHandler.RemoveFromCart)
 
+	// payment handler
 	app.Get("/api/payment", JwtHelper.VerifyToken, PaymentHandler.GetPurchaseConfirm)
 	app.Get("/api/payment/:id", JwtHelper.VerifyToken, PaymentHandler.GetPurchaseConfirmById)
 	app.Put("/api/payment/:id", JwtHelper.VerifyToken, PaymentHandler.AcceptPurchaseConfirmation)
 	app.Delete("/api/payment/:id", JwtHelper.VerifyToken, PaymentHandler.DenyPurchaseConfirmation)
 	app.Post("/api/payment/cart/buy", JwtHelper.VerifyToken, PaymentHandler.PayCart)
 
+	// itinerary handler
 	app.Get("/api/itinerary", JwtHelper.VerifyToken, ItineraryHandler.GetItinerary)
 	app.Get("/api/itinerary/public/search", JwtHelper.VerifyToken, ItineraryHandler.GetItineraryPublic)
 	app.Get("/api/itinerary/:id", JwtHelper.VerifyToken, ItineraryHandler.GetItineraryById)
