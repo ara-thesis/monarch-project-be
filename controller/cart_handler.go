@@ -19,12 +19,12 @@ func (ch *CartHandler) GetCart(c *fiber.Ctx) error {
 
 	userData := c.Locals("user").(*helper.ClaimsData)
 
-	if userData.UserRole != "TOURIST" {
+	if userData.UserRole != roleId.t {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 
-	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE created_by = $1 ORDER BY updated_at DESC", ch.Tbname)
-	resQy, resErr := db.Query(qyStr, userData.UserId)
+	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE created_by = $1 AND wait = $2 ORDER BY updated_at DESC", ch.Tbname)
+	resQy, resErr := db.Query(qyStr, userData.UserId, false)
 
 	if resErr != nil {
 		return resp.ServerError(c, resErr.Error())
@@ -41,7 +41,7 @@ func (ch *CartHandler) AddToCart(c *fiber.Ctx) error {
 	uuid := uuid.New()
 
 	// check for permission
-	if userData.UserRole != "TOURIST" {
+	if userData.UserRole != roleId.t {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 
@@ -80,7 +80,7 @@ func (ch *CartHandler) RemoveFromCart(c *fiber.Ctx) error {
 	userData := c.Locals("user").(*helper.ClaimsData)
 
 	// permission check
-	if userData.UserRole != "TOURIST" {
+	if userData.UserRole != roleId.t {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 

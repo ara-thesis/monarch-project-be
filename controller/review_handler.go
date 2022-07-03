@@ -11,11 +11,12 @@ import (
 )
 
 type ReviewHandler struct {
-	Tbname string
+	Tbname        string
+	Tbname_rating string
 }
 
 //////////////////////
-// fetch all comment
+// fetch place comment
 //////////////////////
 func (rh *ReviewHandler) GetComment(c *fiber.Ctx) error {
 
@@ -55,9 +56,9 @@ func (rh *ReviewHandler) AddComment(c *fiber.Ctx) error {
 
 	// db process
 	cmdMainStr := fmt.Sprintf(`
-	INSERT INTO %s(id, place_id, comment, created_at, created_by, updated_at, updated_by) VALUES($1, $2, $3, $4, $5, $6, $7)`, rh.Tbname)
+	INSERT INTO %s(id, place_id, comment, score, created_at, created_by, updated_at, updated_by) VALUES($1, $2, $3, $4, $5, $6, $7, $8)`, rh.Tbname)
 	resMainErr := db.Command(
-		cmdMainStr, uuid, model.Place_Id, model.Comment, time.Now(), userData.UserId, time.Now(), userData.UserId,
+		cmdMainStr, uuid, model.Place_Id, model.Comment, model.Score, time.Now(), userData.UserId, time.Now(), userData.UserId,
 	)
 	if resMainErr != nil {
 		return resp.ServerError(c, "Error Adding Data: "+resMainErr.Error())
@@ -74,7 +75,7 @@ func (rh *ReviewHandler) DeleteCommentAdmin(c *fiber.Ctx) error {
 	userData := c.Locals("user").(*helper.ClaimsData)
 
 	// permission check
-	if userData.UserRole != roleId.adm {
+	if userData.UserRole == roleId.pm {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 

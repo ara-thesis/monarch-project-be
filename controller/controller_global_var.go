@@ -12,12 +12,7 @@ var (
 	db        = new(helper.PgHelper)
 	resp      = new(helper.ResponseHelper)
 	jwthelper = new(helper.JwtHelper)
-	// roleId    = map[string]string{
-	// 	"T":   "TOURIST",
-	// 	"PM":  "PLACE MANAGER",
-	// 	"ADM": "ADMIN",
-	// }
-	roleId = roleSet{
+	roleId    = roleSet{
 		t:   "TOURIST",
 		pm:  "PLACE MANAGER",
 		adm: "ADMIN",

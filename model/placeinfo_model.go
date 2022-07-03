@@ -1,6 +1,8 @@
 package model
 
-import "time"
+import (
+	"time"
+)
 
 type PlaceInfoModel struct {
 	Place_name      string    `json:"place_name" xml:"place_name" form:"place_name"`
@@ -12,6 +14,7 @@ type PlaceInfoModel struct {
 	Place_postal    string    `json:"place_postal" xml:"place_postal" form:"place_postal"`
 	Place_loc_long  float32   `json:"place_loc_long" xml:"place_loc_long" form:"place_loc_long"`
 	Place_loc_lat   float32   `json:"place_loc_lat" xml:"place_loc_lat" form:"place_loc_lat"`
+	Place_images    []string  ``
 	Place_opentime  time.Time `json:"place_opentime" xml:"place_opentime" form:"place_opentime"`
 	Place_closetime time.Time `json:"place_closetime" xml:"place_closetime" form:"place_closetime"`
 }

@@ -11,7 +11,9 @@ import (
 )
 
 type TicketHandler struct {
-	Tbname string
+	Tbname        string
+	Tbname_place  string
+	Tbname_bought string
 }
 
 /////////////////////
@@ -51,6 +53,58 @@ func (th *TicketHandler) GetTicketById(c *fiber.Ctx) error {
 
 }
 
+////////////////////////////
+// fetch all ticket bought
+////////////////////////////
+func (th *TicketHandler) GetTicketBoughtTourist(c *fiber.Ctx) error {
+
+	userData := c.Locals("user").(*helper.ClaimsData)
+
+	// check for permission
+	if userData.UserRole != roleId.t {
+		return resp.Forbidden(c, "Access Forbidden")
+	}
+
+	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE owner = $1 AND redeemed = $2", th.Tbname_bought)
+	resQy, resErr := db.Query(qyStr, userData.UserId, false)
+
+	if resErr != nil {
+		return resp.ServerError(c, resErr.Error())
+	}
+
+	return resp.Success(c, resQy, "Success Fetching Data")
+
+}
+
+//////////////////
+// redeem ticket
+//////////////////
+func (th *TicketHandler) RedeemTicket(c *fiber.Ctx) error {
+
+	userData := c.Locals("user").(*helper.ClaimsData)
+	model := &model.TicketBoughtModel{}
+
+	// check for permission
+	if userData.UserRole != roleId.pm {
+		return resp.Forbidden(c, "Access Forbidden")
+	}
+
+	// fetch from form-data
+	if reqErr := c.BodyParser(model); reqErr != nil {
+		return resp.ServerError(c, reqErr.Error())
+	}
+
+	cmdStr := fmt.Sprintf("UPDATE %s SET redeemed = $1, updated_by = $2, updated_at = $3 WHERE code = $4", th.Tbname_bought)
+	resErr := db.Command(cmdStr, true, userData.UserId, time.Now(), model.TicketBought_code)
+
+	if resErr != nil {
+		return resp.ServerError(c, resErr.Error())
+	}
+
+	return resp.Success(c, nil, "Success Redeem Ticket")
+
+}
+
 ///////////////////////////////
 // fetch all ticket for admin
 ///////////////////////////////
@@ -59,7 +113,7 @@ func (th *TicketHandler) GetTicketAdmin(c *fiber.Ctx) error {
 	userData := c.Locals("user").(*helper.ClaimsData)
 
 	// check for permission
-	if userData.UserRole != "PLACE MANAGER" {
+	if userData.UserRole != roleId.pm {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 
@@ -84,7 +138,7 @@ func (th *TicketHandler) AddTicket(c *fiber.Ctx) error {
 	uuid := uuid.New()
 
 	// check for permission
-	if userData.UserRole != "PLACE MANAGER" {
+	if userData.UserRole != roleId.pm {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 
@@ -94,7 +148,7 @@ func (th *TicketHandler) AddTicket(c *fiber.Ctx) error {
 	}
 
 	// check for place id
-	qyStr := fmt.Sprintf("SELECT id FROM %s WHERE created_by = $1", th.Tbname)
+	qyStr := fmt.Sprintf("SELECT id FROM %s WHERE created_by = $1", th.Tbname_place)
 	checkData, checkErr := db.Query(qyStr, userData.UserId)
 	if checkErr != nil {
 		return resp.ServerError(c, checkErr.Error())
@@ -131,7 +185,7 @@ func (th *TicketHandler) EditTicket(c *fiber.Ctx) error {
 	model := new(model.TicketModel)
 	userData := c.Locals("user").(*helper.ClaimsData)
 
-	if userData.UserRole != "PLACE MANAGER" {
+	if userData.UserRole != roleId.pm {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 
@@ -164,7 +218,7 @@ func (th *TicketHandler) EditTicket(c *fiber.Ctx) error {
 		model.Ticket_price = checkData[0].(map[string]interface{})["price"].(int)
 	}
 
-	// delete data process
+	// update data process
 	cmdStr := fmt.Sprintf(
 		"UPDATE %s SET name=$1, details=$2, place_id=$3, price=$4, updated_by=$5, updated_at=$6 WHERE id = $7",
 		th.Tbname)
@@ -186,7 +240,7 @@ func (th *TicketHandler) DeleteTicket(c *fiber.Ctx) error {
 	// check for permission
 	userData := c.Locals("user").(*helper.ClaimsData)
 
-	if userData.UserRole != "PLACE MANAGER" {
+	if userData.UserRole != roleId.pm {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 
