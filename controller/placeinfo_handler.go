@@ -161,6 +161,13 @@ func (pinf *PlaceInfoHandler) UpdatePlaceInfoAdmin(c *fiber.Ctx) error {
 	// file process
 	if form, err := c.MultipartForm(); err == nil {
 		files := form.File["images"]
+		// var files []*multipart.FileHeader
+		if len(form.File) > 1 {
+			for _, file := range form.File {
+				blob := file[0]
+				files = append(files, blob)
+			}
+		}
 		for _, file := range files {
 			fileName := fmt.Sprintf("%s-%s", uuid_main, file.Filename)
 			for {
