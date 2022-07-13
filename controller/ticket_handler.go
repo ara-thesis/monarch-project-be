@@ -43,7 +43,7 @@ func (th *TicketHandler) GetTicketTourist(c *fiber.Ctx) error {
 func (th *TicketHandler) GetTicketById(c *fiber.Ctx) error {
 
 	qyStr := fmt.Sprintf("SELECT * FROM %s WHERE id = $1", th.Tbname)
-	resQy, resErr := db.Query(qyStr, c.Query("id"))
+	resQy, resErr := db.Query(qyStr, c.Params("id"))
 
 	if resErr != nil {
 		return resp.ServerError(c, resErr.Error())
@@ -94,8 +94,8 @@ func (th *TicketHandler) RedeemTicket(c *fiber.Ctx) error {
 		return resp.ServerError(c, reqErr.Error())
 	}
 
-	cmdStr := fmt.Sprintf("UPDATE %s SET redeemed = $1, updated_by = $2, updated_at = $3 WHERE code = $4", th.Tbname_bought)
-	resErr := db.Command(cmdStr, true, userData.UserId, time.Now(), model.TicketBought_code)
+	cmdStr := fmt.Sprintf("UPDATE %s SET redeemed = $1, ticket_id=$2, updated_by = $3, updated_at = $4 WHERE code = $5", th.Tbname_bought)
+	resErr := db.Command(cmdStr, true, nil, userData.UserId, time.Now(), model.TicketBought_code)
 
 	if resErr != nil {
 		return resp.ServerError(c, resErr.Error())
