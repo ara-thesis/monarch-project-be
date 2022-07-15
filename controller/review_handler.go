@@ -42,7 +42,7 @@ func (rh *ReviewHandler) GetComment(c *fiber.Ctx) error {
 func (rh *ReviewHandler) AddComment(c *fiber.Ctx) error {
 
 	userData := c.Locals("user").(*helper.ClaimsData)
-	model := new(model.CommentModel)
+	model := new(model.ReviewModel)
 	uuid := uuid.New()
 
 	// permission check

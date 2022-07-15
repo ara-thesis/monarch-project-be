@@ -15,6 +15,7 @@ import (
 
 type PaymentController struct {
 	Tbname              string
+	Tbname_user         string
 	Tbname_cart         string
 	Tbname_ticketbought string
 }
@@ -59,8 +60,8 @@ func (pc *PaymentController) GetPurchaseConfirmById(c *fiber.Ctx) error {
 		return resp.Forbidden(c, "Access Forbidden")
 	}
 
-	qyStr := fmt.Sprintf(`SELECT * FROM %s WHERE id = $1`, pc.Tbname)
-	resQy, resErr := db.Query(qyStr, c.Query("id"))
+	qyStr := fmt.Sprintf(`SELECT * FROM %s pt JOIN %s ui ON pt.created_by = ui.id WHERE pt.id = $1;`, pc.Tbname, pc.Tbname_user)
+	resQy, resErr := db.Query(qyStr, c.Params("id"))
 
 	if resErr != nil {
 		return resp.ServerError(c, resErr.Error())

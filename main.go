@@ -52,6 +52,7 @@ func pathapi(app *fiber.App) {
 	}
 	PaymentHandler := &controller.PaymentController{
 		Tbname:              "paymenttb",
+		Tbname_user:         "userinfo",
 		Tbname_cart:         "ticketcarttb",
 		Tbname_ticketbought: "ticketboughttb",
 	}
