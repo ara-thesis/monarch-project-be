@@ -19,6 +19,7 @@ type ItineraryItemModel struct {
 	ItineraryId uuid.UUID
 	PlaceId     string
 	Detail      string
+	Day         string
 	In_time     string
 	Out_time    string
 }

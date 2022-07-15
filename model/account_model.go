@@ -7,4 +7,5 @@ type AccountModel struct {
 	Password string `json:"password" xml:"password" form:"password"`
 	Mobile   string `json:"mobile" xml:"mobile" form:"mobile"`
 	Role     string `json:"role" xml:"role" form:"role"`
+	Image    interface{}
 }

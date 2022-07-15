@@ -9,3 +9,7 @@ type DashboardHandler struct {
 func (dh *DashboardHandler) GetPlaceManager(c *fiber.Ctx) {
 
 }
+
+func (dh *DashboardHandler) GetAdmin(c *fiber.Ctx) {
+
+}
