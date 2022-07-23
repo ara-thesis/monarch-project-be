@@ -31,7 +31,6 @@ func (ch *CartHandler) GetCart(c *fiber.Ctx) error {
 	}
 
 	return resp.Success(c, resQy, "Success Fetching Data")
-
 }
 
 func (ch *CartHandler) AddToCart(c *fiber.Ctx) error {

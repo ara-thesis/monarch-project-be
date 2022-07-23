@@ -48,7 +48,6 @@ func (pc *PaymentController) GetPurchaseConfirm(c *fiber.Ctx) error {
 	}
 
 	return resp.Success(c, resQy, "Success Fetching Data")
-
 }
 
 func (pc *PaymentController) GetPurchaseConfirmById(c *fiber.Ctx) error {
